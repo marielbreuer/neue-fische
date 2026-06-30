@@ -1,0 +1,426 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-primary,#0f1117);color:var(--text-primary,#e8eaf0);min-height:100vh;padding:16px}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:16px}
+.tab{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border,#2e3240);background:transparent;color:var(--text-secondary,#8b92a8);transition:.15s}
+.tab.active{background:var(--bg-secondary,#1a1d27);color:var(--text-primary,#e8eaf0);border-color:#3e4560}
+
+/* Main layout */
+.layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}
+@media(max-width:700px){.layout{grid-template-columns:1fr}}
+
+/* Form panel */
+.form-panel{background:var(--bg-secondary,#1a1d27);border:1.5px solid var(--border,#2e3240);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.q-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-secondary,#8b92a8);margin-bottom:6px}
+.chip-grid{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:5px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1.5px solid var(--border,#2e3240);background:transparent;color:var(--text-secondary,#8b92a8);transition:.12s;white-space:nowrap}
+.chip:hover{border-color:#3e4560;color:var(--text-primary,#e8eaf0)}
+.chip.sel{background:#1e2540;border-color:#4a5080;color:#b0b8d8}
+.reset-btn{font-size:11px;color:var(--text-secondary,#8b92a8);background:none;border:none;cursor:pointer;padding:4px 0;text-align:left;text-decoration:underline;opacity:.7}
+.reset-btn:hover{opacity:1}
+
+/* Results panel */
+.results-panel{display:flex;flex-direction:column;gap:10px}
+.no-results{background:var(--bg-secondary,#1a1d27);border:1.5px solid var(--border,#2e3240);border-radius:12px;padding:28px;text-align:center;color:var(--text-secondary,#8b92a8);font-size:13px;line-height:1.6}
+
+/* Program card */
+.prog-card{border-radius:12px;padding:14px 16px;border:1.5px solid;transition:.15s;cursor:default}
+.prog-card:hover{transform:translateY(-1px)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.card-name{font-size:14px;font-weight:700;line-height:1.3}
+.card-track{font-size:10px;opacity:.6;margin-top:2px}
+.match-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.match-strong{background:rgba(99,200,140,.18);color:#63c88c}
+.match-good{background:rgba(255,200,80,.14);color:#ffd060}
+.match-consider{background:rgba(150,160,190,.14);color:#9aa0b8}
+.card-meta{display:flex;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+.meta-pill{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.06);color:var(--text-secondary,#8b92a8)}
+.card-tagline{font-size:12px;opacity:.75;margin-bottom:9px;font-style:italic}
+.card-talking{font-size:11.5px;line-height:1.6;color:var(--text-secondary,#8b92a8);padding:8px 10px;background:rgba(0,0,0,.25);border-radius:7px;border-left:2px solid rgba(255,255,255,.1)}
+.card-talking strong{color:var(--text-primary,#e8eaf0)}
+
+/* Personas tab */
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.track-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#8b92a8);margin-top:8px;margin-bottom:4px;grid-column:1/-1}
+.persona-card{border-radius:10px;padding:12px;border:1.5px solid;cursor:pointer;transition:.15s}
+.persona-card:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.p-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.p-program{font-size:10px;opacity:.6;margin-bottom:5px}
+.p-desc{font-size:10px;opacity:.7;line-height:1.5}
+.p-tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.08);margin-top:5px;margin-right:3px}
+
+/* Tooltip/instruction */
+.tip{font-size:11px;color:var(--text-secondary,#8b92a8);background:var(--bg-secondary,#1a1d27);border:1px solid var(--border,#2e3240);border-radius:8px;padding:8px 12px;margin-bottom:4px}
+</style>
+
+<h2 class="sr-only">Admissions Assessment Tool — maps learner background and goals to neuefische programs</h2>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('assess')">🎯 Assess a Learner</button>
+  <button class="tab" onclick="showTab('personas')">👤 Browse Personas</button>
+</div>
+
+<div id="assess-view">
+  <div class="tip">Select what you know about the prospect — results update live. Click a persona above to pre-fill.</div>
+  <div style="margin-bottom:10px">
+    <div class="chip-grid" id="persona-chips"></div>
+  </div>
+  <div class="layout">
+    <div class="form-panel">
+      <div>
+        <div class="q-label">1 · Background</div>
+        <div class="chip-grid" id="bg-chips"></div>
+      </div>
+      <div>
+        <div class="q-label">2 · What do they want to do?</div>
+        <div class="chip-grid" id="goal-chips"></div>
+      </div>
+      <div>
+        <div class="q-label">3 · Experience level</div>
+        <div class="chip-grid" id="exp-chips"></div>
+      </div>
+      <div>
+        <div class="q-label">4 · Time & language</div>
+        <div class="chip-grid" id="time-chips"></div>
+        <div class="chip-grid" style="margin-top:6px" id="lang-chips"></div>
+      </div>
+      <button class="reset-btn" onclick="resetForm()">↺ Clear all</button>
+    </div>
+    <div class="results-panel" id="results">
+      <div class="no-results">Select background and goal to see program recommendations.</div>
+    </div>
+  </div>
+</div>
+
+<div id="personas-view" style="display:none">
+  <div class="persona-grid" id="persona-grid"></div>
+</div>
+
+<script>
+const C = {
+  data:'rgba(0,178,169,.12)', datab:'rgba(0,178,169,.4)', datac:'#00d4ca',
+  web:'rgba(255,140,80,.12)', webb:'rgba(255,140,80,.35)', webc:'#ff9f7a',
+  mgmt:'rgba(140,190,90,.12)', mgmtb:'rgba(140,190,90,.35)', mgmtc:'#a0c878',
+  spec:'rgba(200,80,80,.12)', specb:'rgba(200,80,80,.35)', specc:'#e07b7b',
+  ux:'rgba(200,100,210,.12)', uxb:'rgba(200,100,210,.35)', uxc:'#d88fda',
+  mkt:'rgba(240,150,60,.12)', mktb:'rgba(240,150,60,.35)', mktc:'#f4a460',
+};
+
+const PROGRAMS = {
+  aie:  {name:'AI Engineering',track:'Data & AI',dur:'8 months',lang:'EN · DE',bg:C.data,border:C.datab,color:C.datac,tagline:'The full-length career pivot into AI',prereq:'No tech required',jobs:'ML Engineer · Data Scientist',
+    scores:{bg:{no_tech:3,research:3,business:2,creative:2,marketing:2,dev:2,data:1},goal:{ai_ml:3},exp:{beginner:2,mid:2,senior:1},time:{long:2,any:1},lang:{en:1,de:1}},
+    talk:{no_tech:'Good fit. The 8-month length is the point — they get time to properly learn, not just skim. Emphasise no prior tech is needed and that many cohort members start from zero.',research:'Strong match. Analytical rigour is there, but they need practical coding experience. The longer format gives them space to develop that without rushing. Help them reframe their thesis work as a data project.',business:'The pivot case. Ask what triggered the interest — career plateau or genuine curiosity? The 8 months is realistic; the 4-month options would be too compressed for a true career switch.',dev:'Consider MLE Bridge first — they might not need 8 months. But if they want the full DS + ML Engineering story, AIE works.',default:'Highlight the career-change success rate and the capstone project as proof of work for their portfolio.'}},
+  ds:   {name:'Data Science & AI',track:'Data & AI',dur:'4 months',lang:'EN',bg:C.data,border:C.datab,color:C.datac,tagline:'From research or STEM into industry data science',prereq:'Analytical background helps',jobs:'Data Scientist · ML Analyst',
+    scores:{bg:{research:3,no_tech:2,data:2,business:1},goal:{ai_ml:3,data_insights:1},exp:{beginner:2,mid:2},time:{standard:1,long:1,any:1},lang:{en:1}},
+    talk:{research:'Classic fit. Their statistical background is the strongest asset — the program builds the Python and ML tooling around it. Check: are they coming from a wet-lab or computational background? Computational profiles will ramp faster.',no_tech:'Doable but push them on the prep. They should have 4–6 weeks of Python basics before starting. Recommend Kaggle or CS50P as prep.',default:'Ask about their analytical experience — even Excel-heavy roles count. The DS & AI core is the right on-ramp for most non-technical career changers who are drawn to modelling, not just charts.'}},
+  mle:  {name:'AI & MLE Bridge',track:'Data & AI',dur:'4 months',lang:'EN',bg:C.data,border:C.datab,color:C.datac,tagline:'For data scientists and SWEs who want ML specialisation',prereq:'Active DS or SWE experience required',jobs:'ML Engineer · AI Engineer',
+    scores:{bg:{data:3,dev:3,quant:2},goal:{ai_ml:3},exp:{mid:3,senior:2},time:{standard:1,any:1},lang:{en:1}},
+    talk:{data:'Strong match. This is the upgrade path for someone already working with data who wants to add the ML and deployment layer. Key gate: do they actually use Python and SQL in their current role? If yes, they are ready.',dev:'Great fit if they know some ML basics. The bridge jumps straight to model deployment and MLOps — no Python fundamentals. Confirm they are comfortable with Git, Docker, and cloud concepts.',default:'Be direct about the entry bar — this is NOT beginner-friendly. Someone who took a Udemy ML course is not qualified. Ask about their current job title and daily tools.'}},
+  da:   {name:'Data Analytics & AI',track:'Data & AI',dur:'18 weeks',lang:'EN',bg:C.data,border:C.datab,color:C.datac,tagline:'Data storytelling and business insights',prereq:'No tech required',jobs:'Data Analyst · BI Analyst',
+    scores:{bg:{no_tech:3,research:2,business:2,marketing:2,creative:1},goal:{data_insights:3},exp:{beginner:2,mid:1},time:{standard:1,any:1},lang:{en:1}},
+    talk:{no_tech:'Ideal entry point. Less coding-heavy than DS&AI — the focus is on SQL, visualization and translating data into decisions. Great for people who say "I like numbers but I am not a coder".',research:'If they want to stay close to data analysis without becoming an engineer, this is the right scope. Less Python, more BI tooling and business communication.',business:'Managers who want to understand data teams better and read dashboards critically — good fit. Remind them this is a career-switch track, not just upskilling; if they want to stay in strategy, consider AI Data Strategy instead.',default:'Key differentiator question: Do they want to build models or explain them? DA is about the latter.'}},
+  de:   {name:'Data Engineering',track:'Data & AI',dur:'16 weeks',lang:'EN',bg:C.data,border:C.datab,color:C.datac,tagline:'The plumbing of data — pipelines, cloud, warehouses',prereq:'Programming experience required',jobs:'Data Engineer · Analytics Engineer',
+    scores:{bg:{dev:3,it_ops:2,data:2,quant:1},goal:{data_infra:3},exp:{mid:3,senior:2},time:{standard:1,any:1},lang:{en:1}},
+    talk:{dev:'Natural next step for a developer who is tired of building UIs and wants to work with data at scale. The stack (dbt, Airflow, Prefect, cloud) is what every data team needs. Check their SQL level.',it_ops:'Viable but check Python skills. If they come from network/sysadmin backgrounds, the cloud-native tooling will feel familiar but the coding side may need prep.',default:'Ask: have they ever written a SQL query? Worked with an API? Touched a cloud platform? Any yes is a green flag.'}},
+  aim:  {name:'AI Modeling',track:'Data & AI',dur:'6 weeks',lang:'DE',bg:C.data,border:C.datab,color:C.datac,tagline:'Add AI to your IT role — fast',prereq:'IT / quant experience required',jobs:'AI/ML Developer · AI Specialist',
+    scores:{bg:{quant:3,it_ops:3,data:2,dev:2},goal:{ai_ml:2,data_insights:1},exp:{mid:2,senior:3},time:{short:2,any:1},lang:{de:2}},
+    talk:{quant:'Perfect. Actuaries, pricing analysts, risk modelers — they have the statistical foundation and just need the ML tooling. 6 weeks is tight but sufficient because they are not starting from zero.',it_ops:'Works if they have programming experience (not just config/admin). The program is employer-sponsored friendly — ask if their company would fund it.',default:'Important: this is NOT a career-switch program. If they want a new job in AI, steer toward DS&AI or AIE. If they want to stay in their current role and add AI capabilities, this is the right fit. Also: program is in German — confirm language.'}},
+  wd:   {name:'Web Dev & AI',track:'Web & Software',dur:'16 weeks',lang:'DE',bg:C.web,border:C.webb,color:C.webc,tagline:'From zero to junior developer',prereq:'No tech required',jobs:'Frontend Dev · Junior Full Stack',
+    scores:{bg:{no_tech:3,creative:2,marketing:1},goal:{software:3},exp:{beginner:2},time:{standard:1,any:1},lang:{de:1}},
+    talk:{no_tech:'Classic entry point. Ask: have they tried any HTML/CSS before? Even one Codecademy session shows commitment and readiness. Program is in German.',creative:'Designers who want to code their own work — excellent fit. The visual logic they already have translates well into front-end development.',default:'Manage expectations: they will be junior-level on exit. The question is whether they have the patience for a slow career start. Ask about their financial runway post-bootcamp.'}},
+  asd:  {name:'Advanced Software Development',track:'Web & Software',dur:'16 weeks',lang:'DE',bg:C.web,border:C.webb,color:C.webc,tagline:'Architecture, backend, ops — for developers levelling up',prereq:'Developer experience required',jobs:'Senior Engineer · Tech Lead',
+    scores:{bg:{dev:3,it_ops:2},goal:{software:3},exp:{mid:3,senior:2},time:{standard:1,any:1},lang:{de:1}},
+    talk:{dev:'Targets the developer who has been a mid-level for 2–3 years and wants to move into senior or lead roles. The curriculum moves away from front-end/back-end split toward architecture and ops. Check if they want to stay in Germany — the German-language program suits local enterprise.',default:'Ask: what stack are they on now and where do they feel most limited? The answer will confirm whether this or MLE Bridge is the right direction.'}},
+  fs:   {name:'Full Stack Software Dev',track:'Web & Software',dur:'12 months',lang:'DE',bg:C.web,border:C.webb,color:C.webc,tagline:'1-year structured dev programme with real open-source projects',prereq:'Motivated — no degree needed',jobs:'Full Stack Developer',
+    scores:{bg:{no_tech:2,creative:2,business:1},goal:{software:3},exp:{beginner:2,mid:1},time:{long:2,any:1},lang:{de:1}},
+    talk:{no_tech:'For someone who wants the long game — 12 months gives them real project experience, not just exercises. The open-source project component is the differentiator for portfolio.',default:'The conversion challenge is cost. Prepare concrete ROI data: average time to first job, starting salary range. Asking "where do you see yourself in 2 years?" will usually open this conversation.'}},
+  java: {name:'Java Development with AI',track:'Web & Software',dur:'16 weeks',lang:'DE',bg:C.web,border:C.webb,color:C.webc,tagline:'Backend & enterprise Java for the German market',prereq:'Some programming experience',jobs:'Java Developer · Backend Engineer',
+    scores:{bg:{dev:3,it_ops:2,quant:1},goal:{java:3},exp:{mid:2,senior:1},time:{standard:1,any:1},lang:{de:1}},
+    talk:{dev:'Strong if they know another language (Python, C#, PHP) and want to move into Java enterprise roles — banking, automotive, insurance. The Java market in Germany is very stable. Worth highlighting the automated CV screening advantage — Java roles filter hard on keywords.',default:'Ask: are they targeting German enterprise specifically? If they want startup/international, Java might not be the right positioning.'}},
+  aipm: {name:'AI Project Management',track:'Management',dur:'16 weeks',lang:'EN',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'Manage AI projects without coding',prereq:'PM or coordination experience preferred',jobs:'AI Project Manager · Technical PM',
+    scores:{bg:{business:3,data:2,dev:1,it_ops:1},goal:{pm_project:3},exp:{mid:2,senior:3},time:{standard:1,any:1},lang:{en:1}},
+    talk:{business:'Ideal for the experienced PM who keeps losing conversations with engineers. The program gives them the vocabulary — they will not learn to code but will understand what the engineering team is telling them and push back effectively.',default:'Key differentiator: this is project-level, not org-level. If they are responsible for one AI product or project, this is right. If they are a director trying to transform a whole department, point to DATM instead.'}},
+  pm:   {name:'Product Management with AI',track:'Management',dur:'16 weeks',lang:'EN',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'Agile, user-centered product building',prereq:'No tech required',jobs:'Product Manager · Digital PM',
+    scores:{bg:{business:3,creative:2,no_tech:2,marketing:2},goal:{pm_product:3},exp:{beginner:1,mid:2,senior:2},time:{standard:1,any:1},lang:{en:1}},
+    talk:{business:'People who always say "I had this great idea for an app" — this is their program. Agile, roadmaps, user research, data literacy. The Scrum/Agile framework is central.',creative:'Designers who want to own the product, not just design it. Very natural transition.',default:'Ask: do they want to manage the team or manage the product? If team/stakeholders → PM. If one AI project → AI PM. Both? Lean PM.'}},
+  itpm: {name:'IT Project Management with AI',track:'Management',dur:'16 weeks',lang:'EN',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'IT coordination and delivery for career changers',prereq:'No tech required',jobs:'IT Project Manager · Scrum Master · Project Coordinator',
+    scores:{bg:{no_tech:3,creative:2,business:2,marketing:1},goal:{pm_project:3},exp:{beginner:2,mid:1},time:{standard:1,any:1},lang:{en:1}},
+    talk:{no_tech:'Entry-level PM path. People from operations, admin, or any coordination role who are organised, detail-oriented and want to formalise that into an IT career.',default:'Watch out for naming confusion — the "IT" in the title sometimes reads as IT Support to prospects. Clarify early: this is about managing software/tech projects, not fixing computers. If they want AI project leadership, redirect to AI PM.'}},
+  datm: {name:'Digital & AI Transformation Mgmt',track:'Management',dur:'16 weeks',lang:'DE',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'Lead org-wide AI change — for senior professionals',prereq:'Mid/senior management required',jobs:'Transformation Manager · AI Strategy Director',
+    scores:{bg:{business:3,it_ops:2,data:1},goal:{transformation:3},exp:{senior:3,mid:1},time:{standard:1,any:1},lang:{de:1}},
+    talk:{business:'For the Director or VP who has been handed an "AI transformation" mandate and does not know where to start. The EU AI Act angle (fines up to €35M from Aug 2026) is a strong opener in sales conversations.',default:'Hard gate on seniority — this is NOT for recent graduates or junior managers. If they describe themselves as "managing a team of 2", they are not the target. Ask: have you ever owned a budget or led a cross-functional initiative?'}},
+  ads:  {name:'AI Data Strategy & Applied Automation',track:'Management',dur:'12 weeks',lang:'EN',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'AI strategy for your current function — part-time friendly',prereq:'Analytics or management background',jobs:'Data Strategy Manager · Analytics Lead',
+    scores:{bg:{business:3,data:3,it_ops:1,quant:2},goal:{transformation:2,data_insights:2,pm_project:1},exp:{mid:2,senior:3},time:{short:2,standard:1,any:1},lang:{en:1}},
+    talk:{business:'Best positioned as: "stay in your current role, just work smarter with data and AI." Shorter and part-time friendly. If they want a career change, redirect to another program.',data:'Analytics managers or BI leads who want to move upstream into strategy conversations — strong fit.',default:'Key differentiator from DATM: AI Data Strategy is for improving your own function. DATM is for transforming a whole organisation. Ask: "Are you responsible for one team/department or multiple?"'}},
+  cs:   {name:'Cyber Security',track:'Tech Specialist',dur:'16 weeks',lang:'EN',bg:C.spec,border:C.specb,color:C.specc,tagline:'Security credentials for the modern era',prereq:'IT background helpful',jobs:'Security Analyst · Ethical Hacker · Pen Tester',
+    scores:{bg:{it_ops:3,dev:2,no_tech:1},goal:{cloud_security:3},exp:{beginner:1,mid:2},time:{standard:1,any:1},lang:{en:1}},
+    talk:{it_ops:'IT support specialists and network admins who want to specialise upward into security. Strong conversion candidate. Ask about certs they already hold (CompTIA, CCNA).',dev:'Developers interested in application security or DevSecOps — the ethical hacking and cloud security angle is a strong draw.',default:'Cybersecurity is growing fast and has a genuine skills shortage in Germany. If they express this interest even loosely, it is worth exploring — the demand is real.'}},
+  aws:  {name:'AWS Cloud Computing',track:'Tech Specialist',dur:'16 weeks',lang:'EN',bg:C.spec,border:C.specb,color:C.specc,tagline:'Cloud architecture and AWS certifications',prereq:'Technical background preferred',jobs:'Cloud Engineer · Senior DevOps · Cloud Architect',
+    scores:{bg:{dev:3,it_ops:3,quant:1},goal:{cloud_security:3},exp:{mid:2,senior:3},time:{standard:1,any:1},lang:{en:1}},
+    talk:{dev:'Senior SWE or DevOps engineer who wants formal cloud credentials to justify a salary jump or move into architecture. AWS certification is a concrete, marketable outcome.',it_ops:'Systems engineers who have been managing on-prem infra and see the cloud shift coming — strong urgency to convert. Ask if their employer is migrating to cloud.',default:'Ask directly: have you worked with any cloud platform before? Even AWS Free Tier experience counts. Zero cloud experience + seniority = prep course first.'}},
+  ux:   {name:'UX/UI Design & AI',track:'Design',dur:'16 weeks',lang:'EN',bg:C.ux,border:C.uxb,color:C.uxc,tagline:'Digital product design with AI tools',prereq:'Creative background helpful',jobs:'UX Designer · Product Designer · UI Designer',
+    scores:{bg:{creative:3,marketing:2,no_tech:1},goal:{design:3},exp:{beginner:1,mid:2},time:{standard:1,any:1},lang:{en:1}},
+    talk:{creative:'Graphic designers, illustrators and visual communicators pivoting to digital product design. The Figma, user research, and prototyping skills are the bridge.',marketing:'Marketing professionals who want to move into the product-adjacent design space — growing demand in digital teams.',default:'Check: are they drawn more to the research and strategy side (UX) or the visual execution side (UI)? The answer will help you frame the program and set expectations on job titles.'}},
+  mkt:  {name:'AI-Powered Marketing',track:'Marketing',dur:'16 weeks',lang:'EN',bg:C.mkt,border:C.mktb,color:C.mktc,tagline:'AI and data-driven marketing strategies',prereq:'Marketing background preferred',jobs:'AI Marketing Manager · Growth Manager',
+    scores:{bg:{marketing:3,business:2,creative:1},goal:{marketing:3},exp:{mid:2,senior:3},time:{standard:1,any:1},lang:{en:1}},
+    talk:{marketing:'Senior brand or campaign managers who see AI automating their workflows and want to lead that transition, not be replaced by it. Strong emotional trigger for conversion.',default:'Still clarifying internally whether this is "basic marketing + AI tools" or "advanced AI for experienced marketers". Probe their experience level and frame accordingly. If they have <2 years in marketing, set expectations.'}},
+
+  // ── NEW 2026 PROGRAMS ──
+  aiexp:{name:'AI Expert',track:'Data & AI',dur:'6 weeks',lang:'DE',bg:C.data,border:C.datab,color:C.datac,tagline:'AI in practice — from prompting to automation',prereq:'No tech degree required',jobs:'AI Transformation Specialist · Automation Consultant · Digital Process Manager',
+    scores:{bg:{no_tech:3,business:3,marketing:2,it_ops:2,data:1,creative:1},goal:{ai_upskill:3,transformation:1,data_insights:1},exp:{mid:3,beginner:1,senior:1},time:{short:3,any:1},lang:{de:2}},
+    talk:{no_tech:'Good fit — no tech degree needed. This is the programme for professionals who want to use AI tools and automate workflows without switching careers. Emphasise the practical output: they leave with automated workflows, SQL query packs, and dashboards they can use on Monday.',business:'Strong match for business managers who keep hearing about AI but don\'t know where to start. The programme is short, employer-sponsorship-friendly, and focused on ROI — framing as "your team will work faster" resonates well.',marketing:'Marketing ops or campaign managers drowning in manual reporting — automating those workflows with n8n is a core outcome. Frame as role upgrade, not career switch.',default:'Ask: is their role changing because of AI? If yes, this is upskilling to stay relevant. If they want a new AI career, redirect toward DS&AI or AIE. The EU AI Act compliance component (Art. 4 literacy) is a strong employer-sponsorship justification.'}},
+
+  aigov:{name:'AI Governance & Transformation',track:'Management',dur:'6 weeks · Phase 1',lang:'DE',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'Govern and prepare your organisation for AI',prereq:'Management experience required',jobs:'AI Transformation Manager · Change Manager · AI Governance Lead',
+    scores:{bg:{business:3,it_ops:2,data:1,no_tech:1},goal:{transformation:3,ai_upskill:1},exp:{mid:2,senior:3},time:{short:3,any:1},lang:{de:2}},
+    talk:{business:'For managers who have been told to "roll out AI" but don\'t know where to start. This gives them the governance framework, change management tools, and EU AI Act literacy to do it responsibly. Ask: have they been tasked with AI adoption or compliance in their org?',no_tech:'Management background is sufficient — no coding required. Governance, stakeholder management, and change frameworks are the core. Good for compliance officers who need EU AI Act Article 4 understanding.',default:'Distinguish from DATM: AI Governance is Phase 1 — preparing the org for AI adoption (governance, frameworks, literacy). DATM is the broader transformation strategy. AI Governance is faster (6 weeks) and more compliance-focused. Can be combined with AI Strategy (Phase 2) for a full management track.'}},
+
+  aistrat:{name:'AI Strategy for Business & AI Regulation',track:'Management',dur:'8 weeks · Phase 2',lang:'DE',bg:C.mgmt,border:C.mgmtb,color:C.mgmtc,tagline:'Lead the strategy and defend it at board level',prereq:'Senior business experience; Phase 1 recommended',jobs:'AI Strategy Director · Chief AI Officer · Transformation Management Lead',
+    scores:{bg:{business:3,data:2,it_ops:1},goal:{transformation:3,ai_upskill:1},exp:{senior:3,mid:1},time:{short:2,standard:1,any:1},lang:{de:2}},
+    talk:{business:'For senior leaders — CFOs, innovation directors, C-suite candidates — who need to own the company\'s AI agenda and present it to the board. The NPV/IRR ROI modelling and EU AI Act + GDPR compliance components are strong openers: "Can you quantify the business case for your AI investments right now?"',default:'This is Phase 2 of the new AI leadership track — it builds on AI Governance (Phase 1). If they haven\'t done Phase 1, ask about their existing governance/change management background. Seniority gate is real: this is not for junior managers. Ask about board-level exposure and P&L responsibility.'}},
+};
+
+const BG_OPTIONS = [
+  {id:'no_tech',label:'No tech background'},
+  {id:'research',label:'Academic / Research'},
+  {id:'data',label:'Data / Analytics / BI'},
+  {id:'dev',label:'Software Developer'},
+  {id:'it_ops',label:'IT / Ops / Systems'},
+  {id:'business',label:'Business / Management'},
+  {id:'creative',label:'Creative / Design'},
+  {id:'marketing',label:'Marketing'},
+  {id:'quant',label:'Quant / Finance / Stats'},
+];
+const GOAL_OPTIONS = [
+  {id:'ai_ml',label:'Enter AI / Machine Learning'},
+  {id:'data_insights',label:'Data analysis & insights'},
+  {id:'data_infra',label:'Data pipelines & infra'},
+  {id:'software',label:'Software / Web development'},
+  {id:'java',label:'Java / Backend enterprise'},
+  {id:'pm_product',label:'Product management'},
+  {id:'pm_project',label:'Project coordination / IT PM'},
+  {id:'transformation',label:'Org AI transformation'},
+  {id:'cloud_security',label:'Cloud or Cybersecurity'},
+  {id:'design',label:'UX / UI Design'},
+  {id:'marketing',label:'AI-driven marketing'},
+  {id:'ai_upskill',label:'Apply AI & automate in my role'},
+];
+const EXP_OPTIONS = [
+  {id:'beginner',label:'Starting fresh'},
+  {id:'mid',label:'2–5 years experience'},
+  {id:'senior',label:'5+ years / senior level'},
+];
+const TIME_OPTIONS = [
+  {id:'short',label:'Fast upskilling (≤12 wks)'},
+  {id:'standard',label:'Standard bootcamp (16–20 wks)'},
+  {id:'long',label:'Full programme (6–12 mo)'},
+  {id:'any',label:'Flexible'},
+];
+const LANG_OPTIONS = [
+  {id:'de',label:'German'},
+  {id:'en',label:'English'},
+];
+
+const PERSONAS = [
+  {name:'Maria',program:'ds',prog_name:'Data Science & AI',bg:'research',goal:'ai_ml',exp:'mid',time:'standard',lang:'en',desc:'PhD in Biology leaving academia. Wants to translate her statistical rigour into industry data science.',tags:['PhD/postdoc','Career switch','Quantitative']},
+  {name:'Leila',program:'da',prog_name:'Data Analytics & AI',bg:'research',goal:'data_insights',exp:'mid',time:'standard',lang:'en',desc:'Research associate (Environmental Science) moving from R-based academic analysis to commercial BI and SQL.',tags:['Academic','Non-coder','Data storytelling']},
+  {name:'Jordan',program:'de',prog_name:'Data Engineering',bg:'dev',goal:'data_infra',exp:'mid',time:'standard',lang:'en',desc:'Senior SWE specialising into infrastructure — wants pipelines, dbt, Airflow, not notebooks.',tags:['SWE','Pipelines','Cloud']},
+  {name:'Axel',program:'aie',prog_name:'AI Engineering',bg:'it_ops',goal:'ai_ml',exp:'senior',time:'long',lang:'de',desc:'15+ years at Siemens/SAP in legacy automation. Needs the AI layer to stay relevant. Time to fully pivot.',tags:['Legacy tech','German market','Senior']},
+  {name:'Kim',program:'aie',prog_name:'AI Engineering',bg:'no_tech',goal:'ai_ml',exp:'mid',time:'long',lang:'en',desc:'Career pivoter with no tech background. Wants a full transition into AI engineering with enough runway.',tags:['Career switch','No-tech start','Full-time']},
+  {name:'Tom',program:'mle',prog_name:'AI & MLE Bridge',bg:'dev',goal:'ai_ml',exp:'mid',time:'standard',lang:'en',desc:'Backend engineer comfortable with Docker and Python who wants to specialise into ML systems and deployment.',tags:['SWE','ML engineering','Already coding']},
+  {name:'Sarah',program:'mle',prog_name:'AI & MLE Bridge',bg:'data',goal:'ai_ml',exp:'mid',time:'standard',lang:'en',desc:'Data scientist wanting to level up to ML engineering — gaps in deployment, MLOps, and production systems.',tags:['Active DS','Upskilling','Production ML']},
+  {name:'Leo',program:'aim',prog_name:'AI Modeling',bg:'quant',goal:'ai_ml',exp:'senior',time:'short',lang:'de',desc:'Actuary / pricing analyst who wants to build his own models. No need for fundamentals — just the AI layer.',tags:['Quant / finance','Short & sharp','German']},
+  {name:'Natalia',program:'aim',prog_name:'AI Modeling',bg:'data',goal:'ai_ml',exp:'mid',time:'short',lang:'de',desc:'BI analyst moving from dashboards into AI modeling. Wants Python and ML foundations alongside her current job.',tags:['BI analyst','Upskilling','German']},
+  {name:'Vanessa',program:'wd',prog_name:'Web Dev & AI',bg:'business',goal:'software',exp:'mid',time:'standard',lang:'de',desc:'Product manager who can not build anything. Wants to understand code and eventually build her own products.',tags:['Non-coder','Product-minded','German']},
+  {name:'Klaus',program:'asd',prog_name:'Advanced Software Dev',bg:'dev',goal:'software',exp:'mid',time:'standard',lang:'de',desc:'Developer with 3 years experience targeting senior or tech-lead roles. Wants the full-stack + AI architecture profile.',tags:['Mid-level dev','Senior track','German market']},
+  {name:'Josca',program:'java',prog_name:'Java Dev with AI',bg:'dev',goal:'java',exp:'mid',time:'standard',lang:'de',desc:'PHP / C# developer failing automated CV screens for Java enterprise roles in German banking and automotive.',tags:['Java pivot','Enterprise','German market']},
+  {name:'Lisa',program:'aipm',prog_name:'AI Project Management',bg:'business',goal:'pm_project',exp:'senior',time:'standard',lang:'en',desc:'Senior PM with 10+ years who needs technical vocabulary to challenge her engineering team and define AI product strategy.',tags:['Experienced PM','Future-proof','No coding needed']},
+  {name:'Priya',program:'pm',prog_name:'Product Management',bg:'business',goal:'pm_product',exp:'mid',time:'standard',lang:'en',desc:'Traditional PM or team lead moving into AI product management. Wants to go upstream from execution to product vision.',tags:['Agile / Scrum','Digital PM','Career move']},
+  {name:'Marco',program:'itpm',prog_name:'IT Project Management',bg:'business',goal:'pm_project',exp:'mid',time:'standard',lang:'en',desc:'Agency project manager or marketing ops lead stepping into IT delivery. Strong on timelines, weaker on tech vocabulary.',tags:['No tech required','Coordination','Entry-level PM']},
+  {name:'Thomas',program:'datm',prog_name:'Digital & AI Transformation',bg:'business',goal:'transformation',exp:'senior',time:'standard',lang:'de',desc:'Director tasked with AI adoption across a large organisation. Needs governance frameworks and EU AI Act literacy.',tags:['C-suite / Director','Org-wide change','German']},
+  {name:'Hannah',program:'ads',prog_name:'AI Data Strategy',bg:'business',goal:'data_insights',exp:'senior',time:'short',lang:'en',desc:'Analytics manager who uses BI tools but wants to drive data-informed decisions rather than just report dashboards.',tags:['Stay in role','Strategy upgrade','Part-time friendly']},
+  {name:'Giulia',program:'ux',prog_name:'UX/UI Design & AI',bg:'creative',goal:'design',exp:'mid',time:'standard',lang:'en',desc:'Art director or Mediengestalter modernising from print/agency work to digital product design with Figma.',tags:['Creative background','Design transition','Product design']},
+  {name:'Sophie',program:'mkt',prog_name:'AI-Powered Marketing',bg:'marketing',goal:'marketing',exp:'senior',time:'standard',lang:'en',desc:'Senior brand manager who wants data modelling and AI to drive autonomous, data-backed decisions.',tags:['Marketing pro','AI integration','Senior level']},
+  {name:'Tim',program:'cs',prog_name:'Cyber Security',bg:'it_ops',goal:'cloud_security',exp:'mid',time:'standard',lang:'en',desc:'IT support specialist or Fachinformatiker moving into modern cybersecurity — ethical hacking, cloud security creds.',tags:['IT background','Security career','Upskilling']},
+  {name:'Nils',program:'aws',prog_name:'AWS Cloud',bg:'dev',goal:'cloud_security',exp:'senior',time:'standard',lang:'en',desc:'Senior SWE / DevOps engineer wanting structured AWS certification to justify a salary jump into Cloud Architecture.',tags:['Senior dev','Cloud cert','Architecture']},
+  // AI Expert personas
+  {name:'Sandra',program:'aiexp',prog_name:'AI Expert',bg:'no_tech',goal:'ai_upskill',exp:'mid',time:'short',lang:'de',desc:'Operations or HR specialist whose role is being reshaped by AI. Wants fluency with AI tools and automation to stay competitive — not a career switch, a role upgrade.',tags:['Domain expert','No tech degree','Role upgrade']},
+  {name:'Kemal',program:'aiexp',prog_name:'AI Expert',bg:'business',goal:'ai_upskill',exp:'mid',time:'short',lang:'de',desc:'Process coordinator who wants to automate repetitive workflows with n8n and build dashboards that replace manual Excel reports. Employer-sponsored candidate.',tags:['Process manager','Automation','Employer-sponsored']},
+  {name:'Franz',program:'aiexp',prog_name:'AI Expert',bg:'business',goal:'ai_upskill',exp:'senior',time:'short',lang:'de',desc:'Middle manager embedding AI tools in their team\'s daily work. Needs to understand what\'s possible, set standards for responsible AI use, and demonstrate ROI to leadership.',tags:['Team lead','AI adoption','German market']},
+  // AI Governance personas
+  {name:'Lucas',program:'aigov',prog_name:'AI Governance & Transformation',bg:'business',goal:'transformation',exp:'mid',time:'short',lang:'de',desc:'Change manager tasked with rolling out AI tools across a department. Needs a governance framework, stakeholder buy-in strategies, and EU AI Act compliance basics.',tags:['Change manager','AI rollout','Phase 1']},
+  {name:'Diana',program:'aigov',prog_name:'AI Governance & Transformation',bg:'it_ops',goal:'transformation',exp:'senior',time:'short',lang:'de',desc:'Digital director overseeing IT and digitalisation projects. Needs to prepare the organisation for AI adoption — governance structures, risk management, and responsible AI policies.',tags:['Digital director','Governance','Compliance']},
+  {name:'Petra',program:'aigov',prog_name:'AI Governance & Transformation',bg:'business',goal:'transformation',exp:'mid',time:'short',lang:'de',desc:'Compliance officer who needs to understand EU AI Act Article 4 obligations and build an internal AI governance framework. Looking for structured, practical frameworks.',tags:['Compliance','EU AI Act','Risk management']},
+  // AI Strategy personas
+  {name:'Lena',program:'aistrat',prog_name:'AI Strategy for Business & AI Regulation',bg:'business',goal:'transformation',exp:'senior',time:'short',lang:'de',desc:'Innovation director responsible for the company\'s AI agenda. Needs to develop a multi-year AI strategy, calculate ROI on AI initiatives, and present at board level.',tags:['Innovation director','AI strategy','Board-level']},
+  {name:'Frank',program:'aistrat',prog_name:'AI Strategy for Business & AI Regulation',bg:'business',goal:'transformation',exp:'senior',time:'short',lang:'de',desc:'Finance director or CFO who needs to quantify the financial case for AI investment using NPV/IRR models and understand legal exposure under EU AI Act + GDPR.',tags:['CFO / Finance','ROI modelling','Regulatory']},
+  {name:'Christine',program:'aistrat',prog_name:'AI Strategy for Business & AI Regulation',bg:'data',goal:'transformation',exp:'senior',time:'short',lang:'de',desc:'Chief AI Officer candidate or Head of Data targeting C-suite. Wants to formalise her AI leadership credentials, build a defensible company AI regulation posture, and lead transformation at scale.',tags:['C-suite candidate','AI leadership','Phase 2']},
+];
+
+let answers = {bg:null,goal:null,exp:null,time:null,lang:null};
+
+function makeChips(containerId, options, key) {
+  const c = document.getElementById(containerId);
+  options.forEach(o => {
+    const el = document.createElement('button');
+    el.className = 'chip';
+    el.textContent = o.label;
+    el.onclick = () => {
+      answers[key] = answers[key] === o.id ? null : o.id;
+      document.querySelectorAll(`#${containerId} .chip`).forEach(x => x.classList.remove('sel'));
+      if(answers[key]) el.classList.add('sel');
+      renderResults();
+    };
+    el._id = o.id;
+    c.appendChild(el);
+  });
+}
+
+function makePersonaChips() {
+  const c = document.getElementById('persona-chips');
+  PERSONAS.forEach(p => {
+    const el = document.createElement('button');
+    el.className = 'chip';
+    el.style.borderColor = PROGRAMS[p.program].border;
+    el.style.color = PROGRAMS[p.program].color;
+    el.textContent = p.name;
+    el.title = p.prog_name;
+    el.onclick = () => {
+      applyPersona(p);
+      document.querySelectorAll('#persona-chips .chip').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+    };
+    c.appendChild(el);
+  });
+}
+
+function applyPersona(p) {
+  answers = {bg:p.bg, goal:p.goal, exp:p.exp, time:p.time, lang:p.lang};
+  ['bg','goal','exp','time','lang'].forEach(key => {
+    const containerId = key+'-chips';
+    document.querySelectorAll(`#${containerId} .chip`).forEach(el => {
+      el.classList.toggle('sel', el._id === answers[key]);
+    });
+  });
+  renderResults();
+}
+
+function resetForm() {
+  answers = {bg:null,goal:null,exp:null,time:null,lang:null};
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+  renderResults();
+}
+
+function scorePrograms() {
+  return Object.entries(PROGRAMS).map(([id, p]) => {
+    let s = 0;
+    if(answers.bg && p.scores.bg[answers.bg]) s += p.scores.bg[answers.bg] * 10;
+    if(answers.goal && p.scores.goal[answers.goal]) s += p.scores.goal[answers.goal] * 15;
+    if(answers.exp && p.scores.exp[answers.exp]) s += p.scores.exp[answers.exp] * 5;
+    if(answers.time && p.scores.time[answers.time]) s += p.scores.time[answers.time] * 5;
+    if(answers.lang && p.scores.lang && p.scores.lang[answers.lang]) s += p.scores.lang[answers.lang] * 3;
+    return {id, score:s, prog:p};
+  }).filter(x => x.score > 0).sort((a,b) => b.score-a.score);
+}
+
+function getTalkingPoints(id, prog) {
+  const t = prog.talk;
+  if(answers.bg && t[answers.bg]) return t[answers.bg];
+  return t.default || 'Review the program details with the prospect to confirm fit.';
+}
+
+function renderResults() {
+  const panel = document.getElementById('results');
+  const scored = scorePrograms();
+  if(!scored.length || (!answers.bg && !answers.goal)) {
+    panel.innerHTML = '<div class="no-results">Select background and goal to see program recommendations.</div>';
+    return;
+  }
+  const top = scored.slice(0,3);
+  const badges = ['Strong match','Good match','Also consider'];
+  const badgeClass = ['match-strong','match-good','match-consider'];
+  panel.innerHTML = top.map((item,i) => {
+    const p = item.prog;
+    const talk = getTalkingPoints(item.id, p);
+    return `<div class="prog-card" style="background:${p.bg};border-color:${p.border}">
+      <div class="card-top">
+        <div>
+          <div class="card-name" style="color:${p.color}">${p.name}</div>
+          <div class="card-track">${p.track}</div>
+        </div>
+        <span class="match-badge ${badgeClass[i]}">${badges[i]}</span>
+      </div>
+      <div class="card-meta">
+        <span class="meta-pill">⏱ ${p.dur}</span>
+        <span class="meta-pill">🌐 ${p.lang}</span>
+        <span class="meta-pill">🎯 ${p.prereq}</span>
+      </div>
+      <div class="card-tagline">${p.tagline}</div>
+      <div class="card-talking"><strong>💬 Admissions talking point:</strong><br>${talk}</div>
+      <div style="margin-top:8px;font-size:10px;opacity:.6">→ Jobs: ${p.jobs}</div>
+    </div>`;
+  }).join('');
+}
+
+function buildPersonaGrid() {
+  const grid = document.getElementById('persona-grid');
+  const byTrack = {};
+  PERSONAS.forEach(p => {
+    const track = PROGRAMS[p.program].track;
+    if(!byTrack[track]) byTrack[track] = [];
+    byTrack[track].push(p);
+  });
+  Object.entries(byTrack).forEach(([track, list]) => {
+    const lbl = document.createElement('div');
+    lbl.className = 'track-label';
+    lbl.textContent = track;
+    grid.appendChild(lbl);
+    list.forEach(p => {
+      const prog = PROGRAMS[p.program];
+      const card = document.createElement('div');
+      card.className = 'persona-card';
+      card.style.background = prog.bg;
+      card.style.borderColor = prog.border;
+      card.innerHTML = `<div class="p-name" style="color:${prog.color}">${p.name}</div>
+        <div class="p-program">${p.prog_name}</div>
+        <div class="p-desc">${p.desc}</div>
+        <div>${p.tags.map(t=>`<span class="p-tag">${t}</span>`).join('')}</div>`;
+      card.onclick = () => {
+        showTab('assess');
+        applyPersona(p);
+        document.querySelectorAll('#persona-chips .chip').forEach(el => {
+          el.classList.toggle('sel', el.textContent === p.name);
+        });
+      };
+      grid.appendChild(card);
+    });
+  });
+}
+
+function showTab(tab) {
+  document.getElementById('assess-view').style.display = tab==='assess'?'':'none';
+  document.getElementById('personas-view').style.display = tab==='personas'?'':'none';
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='assess')||(i===1&&tab==='personas')));
+}
+
+// init
+makeChips('bg-chips', BG_OPTIONS, 'bg');
+makeChips('goal-chips', GOAL_OPTIONS, 'goal');
+makeChips('exp-chips', EXP_OPTIONS, 'exp');
+makeChips('time-chips', TIME_OPTIONS, 'time');
+makeChips('lang-chips', LANG_OPTIONS, 'lang');
+makeChips('lang-chips', [], 'lang');
+document.getElementById('lang-chips').innerHTML='';
+LANG_OPTIONS.forEach(o=>{
+  const el=document.createElement('button');
+  el.className='chip';el.textContent=o.label;el._id=o.id;
+  el.onclick=()=>{answers.lang=answers.lang===o.id?null:o.id;document.querySelectorAll('#lang-chips .chip').forEach(x=>x.classList.remove('sel'));if(answers.lang)el.classList.add('sel');renderResults();};
+  document.getElementById('lang-chips').appendChild(el);
+});
+makePersonaChips();
+buildPersonaGrid();
+renderResults();
+</script>
