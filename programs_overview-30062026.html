@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spiced & neue fische — Program Portfolio</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; font-family: 'Segoe UI', Arial, sans-serif; background: #0d1b2a; }
+
+  .deck { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none; flex-direction: column; justify-content: center; align-items: stretch;
+    padding: 44px 60px;
+    opacity: 0; transition: opacity .25s ease;
+  }
+  .slide.active { display: flex; opacity: 1; }
+
+  /* ─── Nav ─── */
+  .nav {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px; z-index: 100;
+    background: rgba(0,0,0,.5); backdrop-filter: blur(10px);
+    border-radius: 32px; padding: 9px 22px;
+  }
+  .nav button {
+    background: transparent; border: 1.5px solid rgba(255,255,255,.35); color: #fff;
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px;
+    transition: background .18s;
+  }
+  .nav button:hover { background: rgba(255,255,255,.15); }
+  .nav button:disabled { opacity: .25; cursor: default; }
+  #counter { color: rgba(255,255,255,.6); font-size: 12px; min-width: 56px; text-align: center; }
+  .dots { display: flex; gap: 5px; flex-wrap: wrap; max-width: 340px; justify-content: center; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.22); cursor: pointer; transition: background .18s; }
+  .dot.active { background: #fff; }
+  .dot.cat-compare { background: rgba(255,200,60,.35); }
+  .dot.cat-compare.active { background: #ffc83d; }
+
+  /* ─── SLIDE TYPES ─── */
+
+  /* TITLE */
+  .slide-title {
+    background: #0d1b2a;
+    background-image: radial-gradient(ellipse at 70% 40%, rgba(0,178,169,.18) 0%, transparent 60%),
+                      radial-gradient(ellipse at 20% 80%, rgba(46,1,109,.3) 0%, transparent 55%);
+    justify-content: space-between;
+  }
+  .slide-title .brand { display: flex; gap: 12px; align-items: center; }
+  .brand-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.18);
+    padding: 5px 12px; border-radius: 20px;
+  }
+  .slide-title h1 { font-size: 54px; font-weight: 800; color: #fff; line-height: 1.1; margin: auto 0; }
+  .slide-title h1 span { color: #00b2a9; }
+  .slide-title .sub { font-size: 17px; color: rgba(255,255,255,.6); margin-top: 14px; max-width: 580px; }
+  .footer-row { display: flex; justify-content: space-between; align-items: flex-end; }
+  .stat-row { display: flex; gap: 36px; }
+  .stat .num { font-size: 38px; font-weight: 800; color: #00b2a9; }
+  .stat .lbl { font-size: 11px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: 1px; }
+  .hint { font-size: 11px; color: rgba(255,255,255,.3); }
+
+  /* SECTION DIVIDER */
+  .slide-section { background: #0d1b2a; justify-content: center; align-items: flex-start; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .slide-section h2 { font-size: 58px; font-weight: 800; color: #fff; line-height: 1.05; }
+  .slide-section .section-desc { font-size: 17px; color: rgba(255,255,255,.5); margin-top: 16px; max-width: 580px; }
+  .program-list { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 9px; }
+  .prog-chip {
+    font-size: 11px; padding: 5px 14px; border-radius: 20px;
+    background: rgba(255,255,255,.07); color: rgba(255,255,255,.65);
+    border: 1px solid rgba(255,255,255,.1); white-space: nowrap;
+  }
+
+  /* OVERVIEW */
+  .slide-overview { background: #f5f7fa; }
+  .overview-title { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+  .overview-h { font-size: 28px; font-weight: 800; color: #0d1b2a; margin-bottom: 22px; }
+  .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .ov-card { background: #fff; border-radius: 10px; padding: 12px 16px; border-left: 4px solid var(--card-accent, #ccc); }
+  .ov-cat { font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--card-accent, #999); margin-bottom: 4px; }
+  .ov-name { font-size: 12px; font-weight: 700; color: #0d1b2a; }
+  .ov-meta { font-size: 10px; color: #999; margin-top: 2px; }
+
+  /* PROGRAM SLIDE */
+  .slide-program { background: #f5f7fa; }
+  .prog-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .prog-number { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+  .prog-name { font-size: 32px; font-weight: 800; color: #0d1b2a; line-height: 1.1; }
+  .prog-tagline { font-size: 15px; color: #666; margin-top: 3px; font-style: italic; }
+  .duration-badge {
+    background: var(--accent); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 8px 18px; border-radius: 22px; white-space: nowrap; flex-shrink: 0;
+    margin-left: 20px; margin-top: 4px; text-align: center; line-height: 1.5;
+  }
+  .prog-body { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 16px; flex: 1; }
+  .prog-col { background: #fff; border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .col-head {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); border-bottom: 1px solid #eee; padding-bottom: 7px;
+  }
+  .prereq-text { font-size: 12.5px; color: #555; line-height: 1.5; }
+  .differentiator {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color: #fff; border-radius: 9px; padding: 11px 14px; font-size: 12.5px; line-height: 1.5;
+  }
+  .differentiator strong { display: block; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; opacity: .75; }
+  .persona { display: flex; gap: 9px; align-items: flex-start; }
+  .persona-num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent);
+    color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .persona-name { font-size: 12px; font-weight: 700; color: #0d1b2a; }
+  .persona-desc { font-size: 11px; color: #777; }
+  .stack-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pill { font-size: 10.5px; font-weight: 600; padding: 4px 9px; border-radius: 10px; background: #f0f2f5; color: #555; border: 1px solid #e0e3e8; }
+  .pill.hi { background: var(--accent-light); color: var(--accent); border-color: var(--accent-light); }
+  .job-tag { font-size: 10.5px; font-weight: 600; padding: 4px 10px; border-radius: 9px; background: #0d1b2a; color: #fff; display: inline-block; }
+  .slide-footer { font-size: 10px; color: rgba(0,0,0,.3); margin-top: 12px; display: flex; justify-content: space-between; }
+
+  /* DARK program variant */
+  .slide-program-dark { background: #0d1b2a; }
+  .slide-program-dark .prog-name { color: #fff; }
+  .slide-program-dark .prog-tagline { color: rgba(255,255,255,.5); }
+  .slide-program-dark .prog-col { background: rgba(255,255,255,.05); }
+  .slide-program-dark .col-head { border-bottom-color: rgba(255,255,255,.08); }
+  .slide-program-dark .prereq-text { color: rgba(255,255,255,.7); }
+  .slide-program-dark .persona-name { color: #fff; }
+  .slide-program-dark .persona-desc { color: rgba(255,255,255,.5); }
+  .slide-program-dark .pill { background: rgba(255,255,255,.08); color: rgba(255,255,255,.75); border-color: rgba(255,255,255,.1); }
+  .slide-program-dark .job-tag { background: rgba(255,255,255,.1); color: #fff; }
+  .slide-footer-dark { color: rgba(255,255,255,.2); }
+
+  /* ─── COMPARISON SLIDES ─── */
+  .slide-compare {
+    background: #0d1b2a;
+    background-image: radial-gradient(ellipse at 80% 20%, rgba(255,200,60,.06) 0%, transparent 50%);
+  }
+  .compare-header { margin-bottom: 20px; }
+  .compare-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffc83d; margin-bottom: 6px; }
+  .compare-title { font-size: 30px; font-weight: 800; color: #fff; }
+  .compare-subtitle { font-size: 14px; color: rgba(255,255,255,.45); margin-top: 4px; }
+
+  /* 2-program comparison */
+  .cmp-card {
+    border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px;
+    border: 1.5px solid var(--card-border, rgba(255,255,255,.08));
+  }
+  .cmp-card-title { font-size: 20px; font-weight: 800; color: #fff; }
+  .cmp-card-tagline { font-size: 13px; font-style: italic; opacity: .65; color: #fff; margin-top: 2px; }
+  .cmp-badge { font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 14px; display: inline-block; margin-top: 2px; }
+  .cmp-row-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: .5; color: #fff; margin-bottom: 3px; }
+  .cmp-row-val { font-size: 13px; color: rgba(255,255,255,.85); line-height: 1.45; }
+  .cmp-divider { height: 1px; background: rgba(255,255,255,.07); }
+  .vs-pill {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    background: #ffc83d; color: #0d1b2a; font-size: 12px; font-weight: 800;
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    z-index: 2;
+  }
+
+  /* one-liner box */
+  .oneliner {
+    background: rgba(255,200,60,.12); border: 1px solid rgba(255,200,60,.3);
+    border-radius: 10px; padding: 12px 18px; margin-top: 4px;
+    font-size: 13px; color: rgba(255,220,100,.95); line-height: 1.5;
+  }
+  .oneliner strong { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 4px; opacity: .7; }
+
+  /* comparison table */
+  .cmp-table { width: 100%; border-collapse: collapse; flex: 1; }
+  .cmp-table th {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 10px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .cmp-table th:first-child { color: rgba(255,255,255,.4); width: 18%; }
+  .cmp-table td { padding: 10px 16px; font-size: 12.5px; color: rgba(255,255,255,.8); border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; line-height: 1.45; }
+  .cmp-table td:first-child { color: rgba(255,255,255,.4); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap; }
+  .cmp-table tr:last-child td { border-bottom: none; }
+
+  /* category colors */
+  .cat-data    { --accent:#00b2a9; --accent-light:#e0f7f6; --accent-dark:#008a83; }
+  .cat-web     { --accent:#2e016d; --accent-light:#ede8f7; --accent-dark:#1b0042; }
+  .cat-pm      { --accent:#e86525; --accent-light:#fdeee5; --accent-dark:#c04f18; }
+  .cat-cyber   { --accent:#1b4f72; --accent-light:#e4eef7; --accent-dark:#0d3354; }
+  .cat-ux      { --accent:#8e44ad; --accent-light:#f3e8fb; --accent-dark:#6c3483; }
+  .cat-mkt     { --accent:#c0392b; --accent-light:#fce8e6; --accent-dark:#962d22; }
+  .cat-compare { --accent:#ffc83d; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ══════════════════════════════════════════
+     1 — TITLE
+══════════════════════════════════════════ -->
+<div class="slide slide-title active cat-data">
+  <div class="brand">
+    <span class="brand-tag">Spiced Academy</span>
+    <span class="brand-tag">neue fische</span>
+    <span class="brand-tag" style="color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.08)">Marketing Onboarding 2026</span>
+  </div>
+  <div style="margin:auto 0">
+    <h1>Our <span>Complete</span><br>Program Portfolio</h1>
+    <p class="sub">19 programs. 6 categories. One shared mission: tech you to the next level.</p>
+  </div>
+  <div class="footer-row">
+    <div class="stat-row">
+      <div class="stat"><div class="num">19</div><div class="lbl">Programs</div></div>
+      <div class="stat"><div class="num">7,000+</div><div class="lbl">Alumni</div></div>
+      <div class="stat"><div class="num">69%</div><div class="lbl">Hired ≤ 1 year</div></div>
+      <div class="stat"><div class="num">4.8★</div><div class="lbl">Course Report</div></div>
+    </div>
+    <div class="hint">← → arrows or click dots to navigate</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     2 — OVERVIEW
+══════════════════════════════════════════ -->
+<div class="slide slide-overview cat-data">
+  <div class="overview-title">All Programs</div>
+  <div class="overview-h">Portfolio at a Glance</div>
+  <div class="overview-grid">
+    <!-- Data & AI (9) -->
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">Data Science &amp; AI</div><div class="ov-meta">16 wks · Berlin/Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">Data Analytics &amp; AI</div><div class="ov-meta">18 wks · Berlin/Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">Data Engineering</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI — Flagship</div><div class="ov-name">AI Engineering</div><div class="ov-meta">32 wks / 8 mo · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">AI &amp; Machine Learning Eng.</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">AI Modeling</div><div class="ov-meta">6 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">AI Project Management</div><div class="ov-meta">20 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI</div><div class="ov-name">AI Data Strategy &amp; Automation</div><div class="ov-meta">12 wks · Part-time · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#00b2a9"><div class="ov-cat" style="color:#00b2a9">Data &amp; AI · NEW</div><div class="ov-name">AI Expert</div><div class="ov-meta">6 wks · Remote · German</div></div>
+    <!-- Web & Software Dev (4) -->
+    <div class="ov-card" style="--card-accent:#2e016d"><div class="ov-cat" style="color:#2e016d">Web &amp; Software Dev</div><div class="ov-name">Web Development &amp; AI</div><div class="ov-meta">16 wks · Berlin/Remote</div></div>
+    <div class="ov-card" style="--card-accent:#2e016d"><div class="ov-cat" style="color:#2e016d">Web &amp; Software Dev</div><div class="ov-name">Advanced Software Dev with AI</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#2e016d"><div class="ov-cat" style="color:#2e016d">Web &amp; Software Dev</div><div class="ov-name">Full-Stack Software Dev</div><div class="ov-meta">52 wks / 12 mo · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#2e016d"><div class="ov-cat" style="color:#2e016d">Web &amp; Software Dev</div><div class="ov-name">Java Development with AI</div><div class="ov-meta">16 wks · Remote</div></div>
+    <!-- PM (5) -->
+    <div class="ov-card" style="--card-accent:#e86525"><div class="ov-cat" style="color:#e86525">Product &amp; Project Mgmt</div><div class="ov-name">Product Management with AI</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#e86525"><div class="ov-cat" style="color:#e86525">Product &amp; Project Mgmt</div><div class="ov-name">IT Project Management with AI</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#e86525"><div class="ov-cat" style="color:#e86525">Product &amp; Project Mgmt</div><div class="ov-name">Digital &amp; AI Transformation Mgmt</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#e86525"><div class="ov-cat" style="color:#e86525">Product &amp; Project Mgmt · NEW</div><div class="ov-name">AI Governance &amp; Transformation</div><div class="ov-meta">6 wks · Remote · German</div></div>
+    <div class="ov-card" style="--card-accent:#e86525"><div class="ov-cat" style="color:#e86525">Product &amp; Project Mgmt · NEW</div><div class="ov-name">AI Strategy for Business &amp; AI Regulation</div><div class="ov-meta">8 wks · Remote · German</div></div>
+    <!-- Cyber & Cloud (2) -->
+    <div class="ov-card" style="--card-accent:#1b4f72"><div class="ov-cat" style="color:#1b4f72">Cyber &amp; Cloud</div><div class="ov-name">Cyber Security</div><div class="ov-meta">16 wks · Remote</div></div>
+    <div class="ov-card" style="--card-accent:#1b4f72"><div class="ov-cat" style="color:#1b4f72">Cyber &amp; Cloud</div><div class="ov-name">AWS Cloud Computing</div><div class="ov-meta">16 wks · Remote</div></div>
+    <!-- UX/UI (1) -->
+    <div class="ov-card" style="--card-accent:#8e44ad"><div class="ov-cat" style="color:#8e44ad">UX/UI Design</div><div class="ov-name">UX/UI Design &amp; AI</div><div class="ov-meta">16 wks · Berlin/Remote</div></div>
+    <!-- Marketing & Strategy (1) -->
+    <div class="ov-card" style="--card-accent:#c0392b"><div class="ov-cat" style="color:#c0392b">Marketing &amp; Strategy</div><div class="ov-name">AI-Powered Marketing</div><div class="ov-meta">16 wks · Remote</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     3 — SECTION: DATA & AI
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-data">
+  <div class="section-label">Category 01</div>
+  <h2>Data &amp; AI</h2>
+  <p class="section-desc">Eight programs covering the full AI value chain — from analytics and strategy to production engineering and project leadership.</p>
+  <div class="program-list">
+    <span class="prog-chip">Data Science &amp; AI · 16 wks</span>
+    <span class="prog-chip">Data Analytics &amp; AI · 18 wks</span>
+    <span class="prog-chip">Data Engineering · 16 wks</span>
+    <span class="prog-chip">AI Engineering (flagship) · 32 wks</span>
+    <span class="prog-chip">AI &amp; Machine Learning Engineering · 16 wks</span>
+    <span class="prog-chip">AI Modeling · 6 wks</span>
+    <span class="prog-chip">AI Project Management · 20 wks</span>
+    <span class="prog-chip">AI Data Strategy &amp; Applied Automation · 12 wks (part-time)</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     4 — DATA SCIENCE & AI
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 1 of 7</div>
+      <div class="prog-name">Data Science &amp; AI</div>
+      <div class="prog-tagline">"Build the model"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Berlin or Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Basic programming (Python preferred). Comfort with numbers and statistics. No prior ML/AI experience required.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Entry point into data. Graduates design and build data products — models, analyses, AI prototypes — including Gen AI fundamentals. Part of the modular AI Engineering track.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Maria the academic researcher</div><div class="persona-desc">PhD or postdoc (Biology, Physics, Maths) leaving short-term contracts for a permanent industry role. Wants to translate scientific rigor into scalable data science.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">David the engineering upskiller</div><div class="persona-desc">SWE or industrial engineer (Siemens, Bosch, Daimler) modernizing from MATLAB & C++ to Python, ML, and AI. Fears being stuck in legacy hardware roles.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Nina the business analyst</div><div class="persona-desc">Product manager, BI analyst, or CRM manager with Excel depth wanting Python and machine learning to unlock deeper insights — without waiting for IT.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">Python</span><span class="pill hi">Pandas</span><span class="pill hi">NumPy</span><span class="pill">scikit-learn</span><span class="pill">TensorFlow</span><span class="pill">PostgreSQL</span><span class="pill">Git / GitHub</span><span class="pill">Agile</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Data Scientist</span><span class="job-tag">Applied Data Scientist</span><span class="job-tag">AI Analyst</span><span class="job-tag">Senior Data Analyst</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>4 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     5 — DATA ANALYTICS & AI
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 2 of 7</div>
+      <div class="prog-name">Data Analytics &amp; AI</div>
+      <div class="prog-tagline">"Tell the story with data"</div>
+    </div>
+    <div class="duration-badge">18 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Berlin or Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No prior coding required. Curiosity for data and business insight. Accessible for complete career changers from any background.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Includes a voucher for <strong>Tableau Desktop Specialist + Tableau Data Analyst</strong> certifications. Most accessible entry point — zero-to-certified analyst.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Leila the scientific researcher</div><div class="persona-desc">Research associate or postdoc (Biology, Environmental Science) switching from R-based academic analysis to commercial BI and SQL. Wants to prove analytical rigor has business value.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Ben the marketing & growth analyst</div><div class="persona-desc">Marketing manager or CRM lead tired of manual Excel reporting. Wants to query the data himself and drive strategy — without depending on IT or data teams.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Anna the non-tech career changer</div><div class="persona-desc">From architecture, teaching, or customer service — entering data analytics for stability and a future-proof career. Starting from scratch technically.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">Python</span><span class="pill hi">Pandas</span><span class="pill hi">Tableau</span><span class="pill">PostgreSQL / SQL</span><span class="pill">Matplotlib</span><span class="pill">Seaborn</span><span class="pill">Statistics</span><span class="pill">Google Sheets</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Data Analyst</span><span class="job-tag">BI Analyst</span><span class="job-tag">Analytics Specialist</span><span class="job-tag">Reporting Analyst</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>5 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     6 — DATA ENGINEERING
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 3 of 7</div>
+      <div class="prog-name">Data Engineering</div>
+      <div class="prog-tagline">"Build the plumbing"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Python + SQL basics. Some prior software or tech experience helpful. Interest in systems, infrastructure, and reliability — not modeling.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only program focused on data infrastructure. Includes <strong>AWS Certified Data Engineer</strong> prep. No AI model or dashboard works without what DE grads build.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Jordan the software engineer</div><div class="persona-desc">Senior SWE or data scientist specializing into infrastructure — wants pipelines, orchestration, and warehouses, not notebooks. Gaps in dbt and Airflow, strong in Python and SQL.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Elena the academic moving to production</div><div class="persona-desc">Research associate or bioinformatician turning analysis scripts into production-grade engineering. Strong in Python/R; needs CI/CD, containers, and modern stack.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Sam the business analyst</div><div class="persona-desc">Supply chain, procurement, or BI analyst (adidas, Panasonic) tired of waiting for IT to clean the data. Wants to build pipelines themselves and own the backend of their data workflows.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">Python</span><span class="pill hi">SQL</span><span class="pill hi">AWS</span><span class="pill hi">Apache Airflow</span><span class="pill">Spark / PySpark</span><span class="pill">Kafka</span><span class="pill">Docker</span><span class="pill">dbt</span><span class="pill">MongoDB</span><span class="pill">Terraform</span><span class="pill">GitHub Actions</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Data Engineer</span><span class="job-tag">Cloud Data Engineer</span><span class="job-tag">ETL Developer</span><span class="job-tag">Platform Engineer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>6 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     7 — AI ENGINEERING (FLAGSHIP)
+══════════════════════════════════════════ -->
+<div class="slide slide-program-dark slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number" style="color:#00b2a9">Data &amp; AI · 4 of 7 — FLAGSHIP</div>
+      <div class="prog-name">AI Engineering</div>
+      <div class="prog-tagline" style="color:rgba(255,255,255,.5)">"Both, end-to-end"</div>
+    </div>
+    <div class="duration-badge" style="background:#00b2a9">32 Weeks / 8 Months<br><small style="font-weight:400;font-size:10px">Remote · EN or DE</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head" style="color:#00b2a9">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text" style="color:rgba(255,255,255,.7)">Basic programming comfort. Time and commitment for 8 months. Ambition to own the full stack from modeling to production.</p>
+      <div class="differentiator" style="background:rgba(0,178,169,.18);border:1px solid rgba(0,178,169,.3)"><strong>Key Differentiator</strong>= Data Science &amp; AI + AI &amp; MLE combined. Most in-demand AI Engineer profile on the market. Best for candidates without an existing specialization.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head" style="color:#00b2a9">Ideal Personas</div>
+      <div class="persona"><div class="persona-num" style="background:#00b2a9">1</div><div><div class="persona-name">Axel the legacy tech veteran</div><div class="persona-desc" style="color:rgba(255,255,255,.5)">15+ years at Siemens, SAP, or in RPA/automation. Deep expertise, but pigeonholed in Fortran, legacy Java, or on-premise stacks. Needs the AI layer to stay relevant.</div></div></div>
+      <div class="persona"><div class="persona-num" style="background:#00b2a9">2</div><div><div class="persona-name">Kim the career pivoter</div><div class="persona-desc" style="color:rgba(255,255,255,.5)">Dormant CS or Physics background working in event management, logistics, or hospitality. Ready to realign with intellectual capabilities and activate dormant potential.</div></div></div>
+      <div class="persona"><div class="persona-num" style="background:#00b2a9">3</div><div><div class="persona-name">Vera the creative technologist</div><div class="persona-desc" style="color:rgba(255,255,255,.5)">VFX supervisor, art director, or compositor (Weta FX level) — AI is commoditizing pure creative skills. Wants to engineer the pipelines and tools, not just use them.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head" style="color:#00b2a9">Tech Stack</div>
+      <div class="stack-pills"><span class="pill">Python</span><span class="pill">ML / Deep Learning</span><span class="pill">MLOps &amp; LLMOps</span><span class="pill">Model Deployment</span><span class="pill">Serving &amp; Monitoring</span><span class="pill">PostgreSQL</span><span class="pill">Docker</span><span class="pill">AWS</span></div>
+      <div class="col-head" style="margin-top:8px;color:#00b2a9">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Engineer (end-to-end)</span><span class="job-tag">Full-Stack ML Engineer</span></div>
+      <div style="background:rgba(255,200,0,.12);border:1px solid rgba(255,200,0,.25);border-radius:8px;padding:9px 12px;margin-top:8px;font-size:11px;color:rgba(255,220,100,.9)">⚠ Don't over-sell: if candidate already has data skills, DS&AI alone is enough. If already an engineer with ML basics, AI&amp;MLE alone is enough.</div>
+    </div>
+  </div>
+  <div class="slide-footer slide-footer-dark"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>7 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     8 — AI & MLE
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 5 of 7</div>
+      <div class="prog-name">AI &amp; Machine Learning Engineering</div>
+      <div class="prog-tagline">"Run it in production"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Existing tech foundation required — DS, software engineering, analytics, or data engineering. Solid Python. Familiarity with what an ML model is.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>MLOps, LLMOps, serving, monitoring, scaling. Assumes you already know how to build a model. Bridges the gap between prototype and production.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Tom the SWE entering ML</div><div class="persona-desc">Backend or data engineer wanting to specialize in machine learning systems — comfortable with Docker, Python, and cloud; needs the modeling and MLOps layer.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Sarah the data scientist</div><div class="persona-desc">Already builds models with PyTorch or TensorFlow, but struggles to move from Jupyter notebooks to scalable production pipelines. Wants to own the full ML lifecycle.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Omar the analytics engineer</div><div class="persona-desc">Coming from BI or data analytics, moving up the stack into applied ML systems. Has SQL and stats; needs deep learning, model deployment, and AI engineering skills.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">MLOps</span><span class="pill hi">LLMOps</span><span class="pill">Model Serving</span><span class="pill">Model Monitoring</span><span class="pill">Scaling Systems</span><span class="pill">Python (advanced)</span><span class="pill">Docker</span><span class="pill">AWS / Cloud</span><span class="pill">CI/CD for ML</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">ML Engineer</span><span class="job-tag">AI Engineer</span><span class="job-tag">MLOps Engineer</span><span class="job-tag">ML Platform Engineer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>8 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     9 — AI MODELING
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 6 of 7</div>
+      <div class="prog-name">AI Modeling</div>
+      <div class="prog-tagline">"Level up your existing IT career"</div>
+    </div>
+    <div class="duration-badge">6 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">IT experience required. Upskilling program — not a career switch. For professionals who want to add AI modeling to their existing tech role, fast.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Shortest Data &amp; AI program. Ideal for IT professionals who don't need fundamentals — just the AI modeling skills to stay competitive and relevant.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Leo the quantitative professional</div><div class="persona-desc">Actuary, pricing analyst, risk modeler, or quant researcher who wants to build and deploy their own models — no longer dependent on external data teams or black-box tools.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Natalia the analyst upskilling</div><div class="persona-desc">BI analyst, data analyst, or financial analyst moving from dashboards into the AI layer. Wants Python, statsmodels, and ML foundations to step into DS/AI roles.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Marc the technical specialist</div><div class="persona-desc">Systems, DevOps, or embedded engineer with employer-sponsored upskilling. Needs a structured AI credential — not a full career-switch bootcamp.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">Python</span><span class="pill hi">Machine Learning</span><span class="pill">Deep Learning</span><span class="pill">AI model building</span><span class="pill">Training &amp; evaluation</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI/ML Developer</span><span class="job-tag">AI Specialist</span><span class="job-tag">Machine Learning Engineer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>9 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     10 — AI PROJECT MANAGEMENT
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 7 of 7</div>
+      <div class="prog-name">AI Project Management</div>
+      <div class="prog-tagline">"Implement AI projects from A to Z"</div>
+    </div>
+    <div class="duration-badge">20 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No deep coding required, but technical curiosity essential. Designed for those who want to manage and lead AI/data projects end-to-end.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Combines technical AI literacy (ML, deep learning, AWS, Python) with project management frameworks. The bridge between technical teams and business stakeholders — inside the data track.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Lisa the established PM</div><div class="persona-desc">Senior product manager or Head of Product with 10+ years experience. Future-proofing against AI automation — needs technical vocabulary to challenge engineering teams and define AI product strategy.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Daniel the technical builder</div><div class="persona-desc">Senior data scientist, cloud engineer, or ML researcher who wants to step up from execution to strategy — owns the "how" but now wants to own the "why" and "what."</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Priya the creative & design pivoter</div><div class="persona-desc">UX researcher, art director, or marketing manager moving into AI product ownership. Has user empathy and design thinking; wants to drive data-driven product decisions.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">ML &amp; Deep Learning basics</span><span class="pill hi">Python for AI</span><span class="pill hi">AWS Cloud</span><span class="pill">Project delivery</span><span class="pill">Data governance</span><span class="pill">Risk management</span><span class="pill">Stakeholder mgmt</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Project Manager</span><span class="job-tag">Technical PM (Data/AI)</span><span class="job-tag">AI Program Manager</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>10 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     11 — AI DATA STRATEGY & APPLIED AUTOMATION
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 8 of 8</div>
+      <div class="prog-name">AI Data Strategy &amp; Applied Automation</div>
+      <div class="prog-tagline">"Beyond basic AI usage"</div>
+    </div>
+    <div class="duration-badge">12 Weeks · Part-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No coding required. For working professionals who want to lead with data and AI strategy without pausing their career. Already using AI tools — want to use them strategically.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only <strong>part-time</strong> program in the portfolio and the only data program with no technical prerequisites. Combines AI strategy with automation design — bridging business and data.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Hannah the analytics manager</div><div class="persona-desc">Already uses BI tools and KPI dashboards in her role. Wants strategic AI leadership depth — to move from reporting to driving data-informed decisions, alongside her current job.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Tobias the finance & ops lead</div><div class="persona-desc">Controller, supply chain manager, or procurement lead replacing manual Excel with automated data pipelines. Wants to future-proof 10+ years of domain expertise with AI skills.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Sandra the domain-to-digital expert</div><div class="persona-desc">Sales director, HR lead, or operations specialist adding data-driven AI strategy to deep domain expertise — without doing a full career pivot or leaving their current role.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">AI data strategy</span><span class="pill hi">Automation design</span><span class="pill">Data-driven decisions</span><span class="pill">AI tool implementation</span><span class="pill">Process automation</span><span class="pill">KPI frameworks</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Strategy Lead</span><span class="job-tag">Data &amp; Automation Specialist</span><span class="job-tag">BI Lead</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>11 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     12 — AI EXPERT: AI FOUNDATIONS & APPLIED AUTOMATION
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-data">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Data &amp; AI · 9 of 9</div>
+      <div class="prog-name">AI Expert</div>
+      <div class="prog-tagline">"AI in practice — from prompting to automation"</div>
+    </div>
+    <div class="duration-badge">6 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No tech degree required. For professionals who want to apply AI tools, automate workflows, and use data insights in their daily role. Targets KldB 4321/4312 AI transformation roles in German enterprise.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only programme combining AI literacy, no-code automation (n8n), SQL foundations, Power BI/Metabase dashboarding, and EU AI Act compliance in 6 weeks. Portfolio-based: graduates leave with automated workflows, SQL query packs, and interactive dashboards.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Sandra the domain expert</div><div class="persona-desc">Operations, HR, or admin specialist whose role is being reshaped by AI. Needs fluency with AI tools and automation to stay competitive — not a career switch, but a role upgrade.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Kemal the process manager</div><div class="persona-desc">Coordinates business processes and reporting. Wants to automate repetitive workflows with n8n and build dashboards that replace manual Excel reports. Employer-sponsored candidate.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Franz the team lead</div><div class="persona-desc">Middle manager embedding AI tools in their team's daily work. Needs to understand what's possible, set standards for responsible AI use, and demonstrate ROI to leadership.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tools &amp; Skills</div>
+      <div class="stack-pills"><span class="pill hi">n8n automation</span><span class="pill hi">Power BI</span><span class="pill hi">SQL</span><span class="pill">Prompt Engineering</span><span class="pill">Metabase</span><span class="pill">EU AI Act</span><span class="pill">Knowledge Engineering</span><span class="pill">RAG basics</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Transformation Specialist</span><span class="job-tag">Digital Process Manager</span><span class="job-tag">Automation Consultant</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>12 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     13 — DATA TRACK MAP
+══════════════════════════════════════════ -->
+<div class="slide cat-data" style="background:#0d1b2a;padding:32px 48px;flex-direction:column">
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#00b2a9;margin-bottom:5px">Data &amp; AI Track · At a Glance</div>
+    <div style="font-size:26px;font-weight:800;color:#fff">Which Data program fits you?</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:3px">Positioned by background needed (→) and daily technical depth (↑)</div>
+  </div>
+  <div style="position:relative;flex:1;border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden">
+    <!-- grid lines -->
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent calc(25% - 1px),rgba(255,255,255,.04) calc(25%),rgba(255,255,255,.04) 25%),repeating-linear-gradient(90deg,transparent,transparent calc(25% - 1px),rgba(255,255,255,.04) calc(25%),rgba(255,255,255,.04) 25%)"></div>
+    <!-- Y axis label top -->
+    <div style="position:absolute;top:8px;left:14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(0,178,169,.6)">▲ High daily technical depth</div>
+    <!-- Y axis label bottom -->
+    <div style="position:absolute;bottom:8px;left:14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(0,178,169,.6)">▼ Analyze / Strategize</div>
+    <!-- X axis label left -->
+    <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3)">◀ No background required &nbsp;·&nbsp; Strong tech background ▶</div>
+
+    <!-- Program bubbles — positioned as left%/top% -->
+
+    <!-- AI Engineering: accessible entry, highest engineering output -->
+    <div style="position:absolute;left:38%;top:5%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,178,169,.25);border:1.5px solid #00b2a9;border-radius:10px;padding:8px 12px;text-align:center;min-width:130px">
+        <div style="font-size:10px;font-weight:800;color:#00e8de">AI Engineering</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">32 wks · Flagship</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.8);margin-top:3px">Build + run end-to-end</div>
+      </div>
+    </div>
+
+    <!-- AI & MLE: high tech entry, production systems -->
+    <div style="position:absolute;left:76%;top:9%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,150,140,.2);border:1.5px solid rgba(0,178,169,.6);border-radius:10px;padding:8px 12px;text-align:center;min-width:130px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">AI &amp; ML Engineering</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">16 wks · Phase 2</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">ML in production</div>
+      </div>
+    </div>
+
+    <!-- Data Engineering: strong tech, infrastructure -->
+    <div style="position:absolute;left:82%;top:28%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,120,110,.2);border:1.5px solid rgba(0,178,169,.5);border-radius:10px;padding:8px 12px;text-align:center;min-width:120px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">Data Engineering</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">16 wks · Remote</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">Build data pipelines</div>
+      </div>
+    </div>
+
+    <!-- DS & AI: moderate entry, model building -->
+    <div style="position:absolute;left:47%;top:24%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,178,169,.15);border:1.5px solid rgba(0,178,169,.45);border-radius:10px;padding:8px 12px;text-align:center;min-width:120px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">Data Science &amp; AI</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">16 wks · Berlin/Remote</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">Build the model</div>
+      </div>
+    </div>
+
+    <!-- AI Modeling: IT background, model upskill -->
+    <div style="position:absolute;left:68%;top:33%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,140,130,.15);border:1.5px solid rgba(0,178,169,.4);border-radius:10px;padding:8px 12px;text-align:center;min-width:110px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">AI Modeling</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">6 wks · Upskill</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">IT pros → AI models</div>
+      </div>
+    </div>
+
+    <!-- AI PM: moderate tech curiosity, management output -->
+    <div style="position:absolute;left:34%;top:55%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,178,169,.1);border:1.5px solid rgba(0,178,169,.3);border-radius:10px;padding:8px 12px;text-align:center;min-width:120px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">AI Project Mgmt</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">20 wks · Remote</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">Deliver AI projects</div>
+      </div>
+    </div>
+
+    <!-- DA & AI: no prereqs, analyst output -->
+    <div style="position:absolute;left:14%;top:60%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,178,169,.1);border:1.5px solid rgba(0,178,169,.3);border-radius:10px;padding:8px 12px;text-align:center;min-width:130px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">Data Analytics &amp; AI</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">18 wks · Berlin/Remote</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">Analyze &amp; visualize</div>
+      </div>
+    </div>
+
+    <!-- AI Data Strategy: no prereqs, strategy/automation -->
+    <div style="position:absolute;left:10%;top:82%;transform:translate(-50%,-50%)">
+      <div style="background:rgba(0,178,169,.08);border:1.5px solid rgba(0,178,169,.25);border-radius:10px;padding:8px 12px;text-align:center;min-width:140px">
+        <div style="font-size:10px;font-weight:800;color:#00b2a9">AI Data Strategy</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">12 wks · Part-time</div>
+        <div style="font-size:9px;color:rgba(0,178,169,.7);margin-top:3px">Strategy + automation</div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div style="position:absolute;right:12px;top:12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 14px;font-size:10px;color:rgba(255,255,255,.5)">
+      <div style="margin-bottom:4px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;font-size:9px">Brightness = more program overlap</div>
+      <div>Brighter border = more prerequisites</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     13 — SECTION: WEB &amp; SOFTWARE DEV
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-web">
+  <div class="section-label" style="color:#7a4fcf">Category 02</div>
+  <h2>Web &amp; Software<br>Development</h2>
+  <p class="section-desc" style="color:rgba(255,255,255,.5)">Four programs from absolute beginner to senior full-stack engineer — all AI-integrated.</p>
+  <div class="program-list">
+    <span class="prog-chip">Web Development &amp; AI · 16 wks</span>
+    <span class="prog-chip">Advanced Software Dev with AI · 16 wks</span>
+    <span class="prog-chip">Full-Stack Software Dev · 52 wks</span>
+    <span class="prog-chip">Java Development with AI · 16 wks</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     12 — WEB DEV & AI
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-web">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Web &amp; Software Dev · 1 of 4</div>
+      <div class="prog-name">Web Development &amp; AI</div>
+      <div class="prog-tagline">"Your future is written in code"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Berlin or Remote · EN / DE</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No prior coding experience required. Prep assessment before the on-site phase. Open to absolute beginners and career changers from any field.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Unique AI-first curriculum: graduates work with <strong>Claude Code (Agentic Coding)</strong> in real projects. Available in Berlin on-site — the only campus program in the portfolio.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Vanessa the digital professional</div><div class="persona-desc">Product manager, CRM lead, or co-founder who manages digital products but can't build them. Wants to understand code to increase impact — and eventually build products, not just manage them.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Lena the creative turning developer</div><div class="persona-desc">Senior art director, UX designer, or motion designer frustrated with design-only limits. Wants to be a "unicorn" — designing and building her own interfaces.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Adam the technical upskiller</div><div class="persona-desc">Junior developer in a niche like game dev, QA, or audio engineering — pivoting to the mainstream MERN web market where local job opportunities are wider and salaries higher.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">JavaScript</span><span class="pill hi">React</span><span class="pill hi">Next.js</span><span class="pill">HTML &amp; CSS</span><span class="pill">Node.js</span><span class="pill">MongoDB</span><span class="pill">Git / GitHub</span><span class="pill hi">Claude Code</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Full Stack Developer</span><span class="job-tag">Frontend Developer</span><span class="job-tag">Web Developer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>15 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     13 — ADVANCED SOFTWARE DEV
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-web">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Web &amp; Software Dev · 2 of 4</div>
+      <div class="prog-name">Advanced Software Development with AI</div>
+      <div class="prog-tagline">"The senior developer leap"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Existing development experience required. For developers who already code — looking to reach senior-level tech stacks and AI integration.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only program targeting <em>experienced</em> developers. Enterprise-grade stack: TypeScript, NestJS, Next.js + embedding LLMs into production. Delivered in German.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Klaus the software developer upskilling</div><div class="persona-desc">Dev with React, Node.js, or backend experience targeting senior or tech-lead positions. Wants the full-stack + AI integration profile that senior engineering roles now demand.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Petra the mid-level engineer</div><div class="persona-desc">2–4 years experience in web or software development, ready to qualify for senior roles. Needs depth in modern AI-integrated architecture to break through the mid-level ceiling.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">TypeScript</span><span class="pill hi">NestJS</span><span class="pill hi">Next.js</span><span class="pill">React (Server Components)</span><span class="pill">Docker</span><span class="pill">Cloud deployment</span><span class="pill">LLM integration</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Senior Developer</span><span class="job-tag">Senior Full Stack Engineer</span><span class="job-tag">Tech Lead</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>16 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     14 — FULL-STACK 12 MONTHS
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-web">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Web &amp; Software Dev · 3 of 4</div>
+      <div class="prog-name">Full-Stack Software Development</div>
+      <div class="prog-tagline">"From zero to senior full-stack engineer"</div>
+    </div>
+    <div class="duration-badge">52 Weeks / 12 Mo<br><small style="font-weight:400;font-size:10px">Remote · German · Full-time</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No prior coding required. The deepest investment in the software dev portfolio — a full year of structured training. For candidates who want certainty over speed.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The <em>longest</em> program in the portfolio. Deepest coverage: from fundamentals to professional full-stack with AI. Ideal for candidates who don't want shortcuts.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Markus the deliberate career changer</div><div class="persona-desc">Wants a structured, comprehensive path from zero to junior developer — no shortcuts. Often from a non-adjacent field (arts, logistics, hospitality), highly motivated but needs the full arc.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Sofia the bold non-tech pivoter</div><div class="persona-desc">From gardening, research science, or retail — trading a completely different career for software. Needs the longer timeline and maximum depth to feel genuinely job-ready.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">JavaScript</span><span class="pill hi">TypeScript</span><span class="pill hi">React</span><span class="pill">Next.js</span><span class="pill">Node.js</span><span class="pill">SQL + NoSQL</span><span class="pill">Docker</span><span class="pill">Cloud</span><span class="pill">AI integration</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Full Stack Developer</span><span class="job-tag">Software Engineer</span><span class="job-tag">Backend Developer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>17 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     15 — JAVA DEV WITH AI
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-web">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Web &amp; Software Dev · 4 of 4</div>
+      <div class="prog-name">Java Development with AI</div>
+      <div class="prog-tagline">"Enterprise backend + AI integration"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Basic programming comfort helpful. Java is the standard for enterprise software in Germany — banking, insurance, automotive, public sector. Strong market demand.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only Java-focused program in the portfolio. Spring Boot backend + TypeScript frontend + AI agents — the enterprise developer profile.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Josca the software modernizer</div><div class="persona-desc">Frontend dev, PHP developer, or C# engineer targeting stable Java enterprise roles in German industry (banking, automotive, insurance). Pigeonholed in legacy stacks and failing automated CV screens for Java jobs.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Iris the STEM pivot</div><div class="persona-desc">Engineer or researcher (Geoinformatics, Mechatronics, Electrical Engineering) with Python/MATLAB background moving into production software. Overqualified academically, under-qualified commercially.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">Java</span><span class="pill hi">Spring Boot</span><span class="pill hi">TypeScript</span><span class="pill">Databases</span><span class="pill">Authentication &amp; Security</span><span class="pill">AI agents</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Java Developer</span><span class="job-tag">Backend Developer</span><span class="job-tag">Enterprise Developer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>18 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     16 — SECTION: PM (3 programs)
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-pm">
+  <div class="section-label" style="color:#e86525">Category 03</div>
+  <h2>Product &amp; Project<br>Management</h2>
+  <p class="section-desc" style="color:rgba(255,255,255,.5)">Three programs for professionals who lead digital products, coordinate IT projects, and drive organizational AI transformation.</p>
+  <div class="program-list">
+    <span class="prog-chip">Product Management with AI · 16 wks</span>
+    <span class="prog-chip">IT Project Management with AI · 16 wks</span>
+    <span class="prog-chip">Digital &amp; AI Transformation Management · 16 wks</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     17 — PRODUCT MANAGEMENT WITH AI
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-pm">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Product &amp; Project Mgmt · 1 of 3</div>
+      <div class="prog-name">Product Management with AI</div>
+      <div class="prog-tagline">"Lead the AI product"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · EN / DE</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Existing PM experience OR existing data/AI technical experience — one side of the equation must be there. Comfort in cross-functional conversations.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only program pairing data/AI fundamentals with product development and management. Graduates <em>lead</em> AI product teams — they don't engineer systems.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Priya the established PM</div><div class="persona-desc">Traditional PM or team lead moving into AI/data product management. Wants to bridge "market needs" and "product features" — tired of marketing products that don't fit user needs; wants to move upstream.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Kai the technical builder going strategic</div><div class="persona-desc">Data scientist, full-stack engineer, or Scrum Master who prefers roadmaps and stakeholder conversations to writing code. Stuck in the "build trap" — wants to own strategy, not just deliver tickets.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">UX Research</span><span class="pill hi">Agile / Scrum</span><span class="pill">Roadmapping</span><span class="pill">AI product strategy</span><span class="pill">Stakeholder mgmt</span><span class="pill">Data &amp; AI fundamentals</span><span class="pill">Sprint planning</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Product Manager</span><span class="job-tag">Technical PM (Data/AI)</span><span class="job-tag">Data Product Manager</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>20 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     18 — IT PROJECT MANAGEMENT
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-pm">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Product &amp; Project Mgmt · 2 of 3</div>
+      <div class="prog-name">IT Project Management with AI</div>
+      <div class="prog-tagline">"From first project to go-to expert"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No technical background required. Interest in IT coordination and project delivery. Open to career changers from any field.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Entry-level PM path into IT — broader than AI Project Management. Covers the full project lifecycle with AI-augmented tools. Ideal for career changers stepping into coordination roles.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Marco the digital & creative manager</div><div class="persona-desc">Agency project manager, marketing ops lead, or event coordinator stepping into IT delivery roles. Strong on people and timelines, weaker on tech vocabulary and formal PM methodologies.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Hana the tech-embedded upskiller</div><div class="persona-desc">IT support specialist or junior ops role inside a tech team. Manages small tasks informally — wants the formal credential and project ownership to step into Project Coordinator or Scrum Master roles.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">Agile</span><span class="pill hi">Scrum</span><span class="pill hi">Kanban</span><span class="pill">PM methodologies</span><span class="pill">Stakeholder comms</span><span class="pill">Risk &amp; budget mgmt</span><span class="pill">AI tools for PMs</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">IT Project Manager</span><span class="job-tag">Scrum Master</span><span class="job-tag">Project Coordinator</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>21 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     19 — DIGITAL & AI TRANSFORMATION MANAGEMENT
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-pm">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Product &amp; Project Mgmt · 3 of 3</div>
+      <div class="prog-name">Digital &amp; AI Transformation Management</div>
+      <div class="prog-tagline">"Lead AI transformation professionally"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Business, strategy, or management background. No coding required. For mid/senior professionals driving organizational change and AI transformation.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Covers the <strong>EU AI Act</strong> (fines up to €35M from Aug 2026). Demand for AI implementation skills up 245% since 2023. Organizational-level program, not project-level.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Thomas the transformation leader</div><div class="persona-desc">Director or VP-level manager with a business/strategy background, tasked with AI adoption across the organization. Needs EU AI Act literacy, governance frameworks, and change management for large-scale transformation.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Laura the innovation head</div><div class="persona-desc">Runs a digital innovation unit in a mid-to-large company. Has the vision but needs the frameworks to translate it into cross-functional AI strategy — demand for this profile up 245% since 2023.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Claudia the senior manager going strategic</div><div class="persona-desc">Experienced in project delivery and operations management. Ready to step up from managing individual projects to owning the full organizational AI transformation roadmap.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">AI strategy &amp; governance</span><span class="pill hi">EU AI Act compliance</span><span class="pill">Change management</span><span class="pill">AI opportunity mapping</span><span class="pill">Scaling AI in orgs</span><span class="pill">Stakeholder alignment</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Transformation Manager</span><span class="job-tag">Innovation Lead</span><span class="job-tag">Digital Strategy Director</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>22 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     23 — AI GOVERNANCE & TRANSFORMATION
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-pm">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Product &amp; Project Mgmt · 4 of 5</div>
+      <div class="prog-name">AI Governance &amp; Transformation</div>
+      <div class="prog-tagline">"Phase 1: Govern and prepare your organisation for AI"</div>
+    </div>
+    <div class="duration-badge">6 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Management or business background required. No coding. Phase 1 of the AI &amp; Digital Transformation pathway — can be taken standalone or followed by Phase 2 (AI Strategy for Business &amp; AI Regulation).</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Bridges AI literacy and organisational change management. Covers EU AI Act Art. 4 compliance, ADKAR/Kotter change frameworks, agentic AI architectures, MCP integration, and data governance — giving managers both the regulatory toolkit and hands-on AI tools from day one.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Lucas the change manager</div><div class="persona-desc">Mid-level manager tasked with rolling out AI tools across their team or department. Needs structured change frameworks and EU AI Act basics to manage resistance and stay compliant.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Diana the digital director</div><div class="persona-desc">IT or digital transformation director bridging engineering and business stakeholders. Needs governance depth — vendor evaluation, agentic AI architectures, MCP integration — without hands-on coding.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Petra the compliance officer</div><div class="persona-desc">Legal or risk professional needing AI governance certification. EU AI Act fines (up to €35M from Aug 2026) create urgency — needs audit simulation practice and ISO 42001 frameworks.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">EU AI Act (Art. 4)</span><span class="pill hi">ADKAR / Kotter</span><span class="pill hi">Agentic AI architectures</span><span class="pill">MCP integration</span><span class="pill">Stakeholder strategy</span><span class="pill">Data governance</span><span class="pill">ISO 42001</span><span class="pill">Copilot · ChatGPT</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Transformation Manager</span><span class="job-tag">Change Manager</span><span class="job-tag">AI Governance Lead</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>23 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     24 — AI STRATEGY FOR BUSINESS & AI REGULATION
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-pm">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Product &amp; Project Mgmt · 5 of 5</div>
+      <div class="prog-name">AI Strategy for Business &amp; AI Regulation</div>
+      <div class="prog-tagline">"Phase 2: Lead the strategy and defend it at board level"</div>
+    </div>
+    <div class="duration-badge">8 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · German</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Senior management profile required. Phase 2 of the AI &amp; Digital Transformation pathway — recommended after AI Governance &amp; Transformation, or for experienced leaders with prior transformation exposure.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only programme combining NPV/IRR financial modelling for AI investment with full regulatory compliance (EU AI Act + GDPR overlap). Capstone: ISO 42001-aligned policy draft, operating model, and 90-day roadmap — defended before a mock board.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Lena the innovation director</div><div class="persona-desc">Leads a digital innovation unit. Has the vision but needs the financial and regulatory frameworks to translate AI strategy into a fundable, board-approved investment roadmap.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Frank the finance director</div><div class="persona-desc">CFO or Finance Director who evaluates AI investments. Needs NPV/IRR models for AI ROI and ISO 42001 governance to confidently assess and approve AI programmes across the organisation.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Christine the Chief AI Officer candidate</div><div class="persona-desc">Experienced senior manager positioning for AI leadership. Wants a defensible transformation blueprint — ISO 42001 policy, operating model, 90-day roadmap — to step into C-suite AI roles.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">AI investment &amp; ROI (NPV/IRR)</span><span class="pill hi">ISO 42001</span><span class="pill hi">EU AI Act + GDPR</span><span class="pill">Data strategy &amp; governance</span><span class="pill">Cultural transformation</span><span class="pill">AI programme management</span><span class="pill">n8n · Copilot · RAG</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">AI Strategy Director</span><span class="job-tag">Chief AI Officer</span><span class="job-tag">Transformation Management Lead</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>24 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     20 — SECTION: CYBER & CLOUD
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-cyber">
+  <div class="section-label" style="color:#4a90d9">Category 04</div>
+  <h2>Cyber Security<br>&amp; Cloud</h2>
+  <p class="section-desc" style="color:rgba(255,255,255,.5)">Two programs for securing and scaling the systems that power the digital economy.</p>
+  <div class="program-list">
+    <span class="prog-chip">Cyber Security · 16 wks</span>
+    <span class="prog-chip">AWS Cloud Computing · 16 wks</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     21 — CYBER SECURITY
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-cyber">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Cyber &amp; Cloud · 1 of 2</div>
+      <div class="prog-name">Cyber Security</div>
+      <div class="prog-tagline">"Protect the systems that run the world"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Basic IT understanding helpful but not required. Strong interest in security, systems, and protecting digital infrastructure.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Curriculum trusted by <strong>IBM and Red Hat</strong> for internal team training. Broad coverage: networks, cryptography, Windows, macOS, and Linux security.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Tim the IT practitioner</div><div class="persona-desc">IT support specialist, Fachinformatiker, or network engineer updating knowledge for modern cybersecurity. Wants ethical hacking, cloud security credentials, and a path to specialized mid-to-senior roles.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Yasmin the non-technical pivoter</div><div class="persona-desc">From insurance, aviation engineering, or business management — entering cybersecurity for remote work, better work-life balance, and a future-proof career. Zero to low IT background.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">Network security</span><span class="pill hi">Cryptography</span><span class="pill">Access management</span><span class="pill">Windows / Linux / macOS security</span><span class="pill">Threat modeling</span><span class="pill">Incident response</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Cyber Security Analyst</span><span class="job-tag">Information Security Specialist</span><span class="job-tag">Security Engineer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>26 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     22 — AWS CLOUD COMPUTING
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-cyber">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Cyber &amp; Cloud · 2 of 2</div>
+      <div class="prog-name">AWS Cloud Computing</div>
+      <div class="prog-tagline">"Build the stable systems the world needs"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Basic programming or IT knowledge helpful. Interest in infrastructure, scalability, and building reliable systems. Strong global career outlook.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>Hands-on AWS infrastructure training. Prepares for <strong>AWS certification</strong>. Build scalable, fault-tolerant cloud systems on the world's leading cloud platform.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Nils the cloud architect upskiller</div><div class="persona-desc">Senior SWE, DevOps engineer, or CTO with scattered cloud knowledge wanting structured AWS certification. Moving into Senior DevOps or Cloud Architecture — needs formal credential to justify salary jump.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Fatima the technical specialist modernizing</div><div class="persona-desc">QA engineer, legacy IT admin, or WordPress developer whose skills are becoming obsolete. Moving from manual testing and on-premise systems to cloud automation and DevOps.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tech Stack</div>
+      <div class="stack-pills"><span class="pill hi">AWS (S3, EC2, RDS, Lambda)</span><span class="pill">Cloud architecture</span><span class="pill">IAM &amp; security</span><span class="pill">Serverless</span><span class="pill">Terraform / IaC</span><span class="pill">CI/CD pipelines</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Cloud Engineer</span><span class="job-tag">AWS Solutions Architect</span><span class="job-tag">DevOps Engineer</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>27 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     23 — SECTION: UX/UI
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-ux">
+  <div class="section-label" style="color:#c39bd3">Category 05</div>
+  <h2>UX/UI Design</h2>
+  <p class="section-desc" style="color:rgba(255,255,255,.5)">Design intuitive, effective digital products — now AI-augmented.</p>
+  <div class="program-list"><span class="prog-chip">UX/UI Design &amp; AI · 16 wks · Berlin/Remote</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     24 — UX/UI DESIGN & AI
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-ux">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">UX/UI Design · 1 of 1</div>
+      <div class="prog-name">UX/UI Design &amp; AI</div>
+      <div class="prog-tagline">"Light mode, dark mode, you mode"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Berlin or Remote · DE / EN</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">No prior design or coding experience required. Affinity for aesthetics, problem-solving, and user empathy are the key attributes.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>AI-augmented design curriculum. Covers the full product design process end-to-end. Available on-site in Berlin alongside Web Dev.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Giulia the graphic & visual upskiller</div><div class="persona-desc">Art director, Mediengestalter, or print graphic designer modernizing from agency work to digital product design. Declining demand in print; wants Figma, user research, and a stable in-house product role.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Ricardo the digital & tech adjacent</div><div class="persona-desc">Frontend developer frustrated implementing bad designs, or marketing manager wanting more product influence. Goal: "Product Designer" or "UX Engineer" — move upstream to the design phase.</div></div></div>
+      <div class="persona"><div class="persona-num">3</div><div><div class="persona-name">Faeze the career reinventor</div><div class="persona-desc">From law, philology, academia, or social science — repurposing research, critical thinking, and empathy skills for User Research and Information Architecture. Strong analytical foundation, no hard tech skills yet.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Tools &amp; Skills</div>
+      <div class="stack-pills"><span class="pill hi">Figma</span><span class="pill hi">Prototyping</span><span class="pill">User research</span><span class="pill">Usability testing</span><span class="pill">Design systems</span><span class="pill">AI design workflows</span><span class="pill">HTML/CSS basics</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">UX Designer</span><span class="job-tag">UI Designer</span><span class="job-tag">Product Designer</span><span class="job-tag">UX Researcher</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>29 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     25 — SECTION: MARKETING & STRATEGY (2 programs)
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-mkt">
+  <div class="section-label" style="color:#e74c3c">Category 06</div>
+  <h2>Marketing &amp;<br>Strategy</h2>
+  <p class="section-desc" style="color:rgba(255,255,255,.5)">One program for professionals leading data-driven marketing and AI-powered growth.</p>
+  <div class="program-list">
+    <span class="prog-chip">AI-Powered Marketing · 16 wks</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     26 — AI-POWERED MARKETING
+══════════════════════════════════════════ -->
+<div class="slide slide-program cat-mkt">
+  <div class="prog-header">
+    <div>
+      <div class="prog-number">Marketing &amp; Strategy · 1 of 2</div>
+      <div class="prog-name">AI-Powered Marketing</div>
+      <div class="prog-tagline">"Smarter, faster, more effective campaigns"</div>
+    </div>
+    <div class="duration-badge">16 Weeks · Full-time<br><small style="font-weight:400;font-size:10px">Remote · English</small></div>
+  </div>
+  <div class="prog-body">
+    <div class="prog-col">
+      <div class="col-head">Prerequisites &amp; Unique Value</div>
+      <p class="prereq-text">Marketing background or strong digital interest. No coding required. For professionals wanting to harness AI to compete in fast-changing marketing roles.</p>
+      <div class="differentiator"><strong>Key Differentiator</strong>The only marketing-focused program in the portfolio. Combines digital marketing fundamentals with hands-on AI tool integration.</div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Ideal Personas</div>
+      <div class="persona"><div class="persona-num">1</div><div><div class="persona-name">Sophie the strategic marketer</div><div class="persona-desc">Senior brand manager, marketing manager, or account director with 5–15 years experience. Wants AI and data modelling to drive autonomous, data-backed decisions — not dependent on intuition or manual processes.</div></div></div>
+      <div class="persona"><div class="persona-num">2</div><div><div class="persona-name">Carlos the technical developer</div><div class="persona-desc">IT project manager, full-stack developer, or software engineer who wants to apply engineering skills to AI-powered marketing systems — building the tools that marketers need, not just using them.</div></div></div>
+    </div>
+    <div class="prog-col">
+      <div class="col-head">Skills &amp; Tools</div>
+      <div class="stack-pills"><span class="pill hi">SEO &amp; SEM</span><span class="pill hi">Marketing automation</span><span class="pill hi">AI content tools</span><span class="pill">Campaign analytics</span><span class="pill">Social media strategy</span><span class="pill">Performance marketing</span></div>
+      <div class="col-head" style="margin-top:8px">Job Outcomes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="job-tag">Digital Marketing Specialist</span><span class="job-tag">Growth Marketer</span><span class="job-tag">Marketing Automation Expert</span></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Spiced Academy &amp; neue fische · Program Portfolio 2026</span><span>31 / 40</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     ★ COMPARISON SECTION
+══════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+     28 — SECTION: COMMON QUESTIONS
+══════════════════════════════════════════ -->
+<div class="slide slide-section cat-compare" style="background:#0d1b2a;background-image:radial-gradient(ellipse at 60% 30%, rgba(255,200,60,.08) 0%, transparent 55%)">
+  <div class="section-label" style="color:#ffc83d">Common Questions</div>
+  <h2 style="color:#fff">Which program<br>is right for me?</h2>
+  <p class="section-desc" style="color:rgba(255,255,255,.5)">The most frequently confused program pairs — answered side-by-side.</p>
+  <div class="program-list" style="margin-top:28px">
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">Data Science &amp; AI  vs  Data Analytics &amp; AI</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">AI Engineering  vs  Data Engineering</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">AI Engineering  vs  AI &amp; Machine Learning Engineering</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">AI Project Management  vs  IT PM  vs  Product Management with AI</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">Digital &amp; AI Transformation Management  vs  AI Project Management</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">AI Data Strategy &amp; Automation  vs  Digital &amp; AI Transformation Management</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">Advanced Software Development with AI  vs  Java Development with AI</span>
+    <span class="prog-chip" style="border-color:rgba(255,200,60,.3);color:rgba(255,200,60,.8)">AI Expert  ·  AI Governance &amp; Transformation  ·  AI Strategy for Business &amp; AI Regulation</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     29 — DS & AI vs DATA ANALYTICS
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:36px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Most Common Confusion · Data &amp; AI</div>
+    <div class="compare-title">Data Science &amp; AI  ·  vs  ·  Data Analytics &amp; AI</div>
+    <div class="compare-subtitle">Both work with data and Python — but their goals and depth are very different.</div>
+  </div>
+  <div style="display:flex;gap:16px;flex:1">
+    <div class="cmp-card" style="background:rgba(0,178,169,.1);border-color:rgba(0,178,169,.3);flex:1">
+      <div><div class="cmp-card-title">Data Science &amp; AI</div><div class="cmp-card-tagline">"Build the model"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.2);color:#00b2a9;border:1px solid rgba(0,178,169,.3)">16 weeks · Berlin/Remote</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">What you'll do</div><div class="cmp-row-val">Build ML models, AI prototypes, and data products. Hands-on with machine learning algorithms.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Researchers, analysts with stats background, domain experts adding ML skills.</div></div>
+      <div><div class="cmp-row-label">Tech focus</div><div class="cmp-row-val">Python, scikit-learn, TensorFlow, model building &amp; evaluation</div></div>
+      <div><div class="cmp-row-label">Typical output</div><div class="cmp-row-val">A working ML model or AI prototype</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">Data Scientist · Applied Data Scientist · AI Analyst</div></div>
+      <div><div class="cmp-row-label">Pre-reqs</div><div class="cmp-row-val">Basic Python + comfort with stats</div></div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0"><div class="vs-pill" style="position:relative;transform:none">VS</div></div>
+    <div class="cmp-card" style="background:rgba(0,178,169,.06);border-color:rgba(0,178,169,.15);flex:1">
+      <div><div class="cmp-card-title">Data Analytics &amp; AI</div><div class="cmp-card-tagline">"Tell the story with data"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.12);color:rgba(0,200,190,.9);border:1px solid rgba(0,178,169,.2)">18 weeks · Berlin/Remote</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">What you'll do</div><div class="cmp-row-val">Analyze, visualize, and communicate data insights. Build dashboards and reports for business decisions.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Complete career changers — no coding background needed. Anyone who works with data in business.</div></div>
+      <div><div class="cmp-row-label">Tech focus</div><div class="cmp-row-val">Python, Pandas, SQL, Tableau (certification included)</div></div>
+      <div><div class="cmp-row-label">Typical output</div><div class="cmp-row-val">An interactive dashboard or data story for stakeholders</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">Data Analyst · BI Analyst · Analytics Specialist</div></div>
+      <div><div class="cmp-row-label">Pre-reqs</div><div class="cmp-row-val">No coding required — most accessible entry point</div></div>
+    </div>
+  </div>
+  <div class="oneliner" style="margin-top:12px"><strong>One-liner for calls</strong>"Data Analytics teaches you to read and communicate data. Data Science teaches you to model it and build AI. If they want dashboards and BI — Analytics. If they want to build ML models — Data Science."</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     30 — AI ENGINEERING vs DATA ENGINEERING
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:36px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Most Common Confusion · Data &amp; AI</div>
+    <div class="compare-title">AI Engineering  ·  vs  ·  Data Engineering</div>
+    <div class="compare-subtitle">Both mention "engineering" and "data" — but they build completely different things.</div>
+  </div>
+  <div style="display:flex;gap:16px;flex:1">
+    <div class="cmp-card" style="background:rgba(0,178,169,.1);border-color:rgba(0,178,169,.3);flex:1">
+      <div><div class="cmp-card-title">AI Engineering</div><div class="cmp-card-tagline">"Build + run AI models, end-to-end"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.2);color:#00b2a9;border:1px solid rgba(0,178,169,.3)">32 weeks · Flagship</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Primary focus</div><div class="cmp-row-val">Building machine learning models AND deploying them into production systems.</div></div>
+      <div><div class="cmp-row-label">Works with</div><div class="cmp-row-val">Data that already exists — focuses on extracting value from it via AI/ML.</div></div>
+      <div><div class="cmp-row-label">Key tools</div><div class="cmp-row-val">Python, scikit-learn, TensorFlow, MLOps, model serving, Docker, AWS</div></div>
+      <div><div class="cmp-row-label">Analogy</div><div class="cmp-row-val">Builds and drives the car</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">AI Engineer · ML Engineer · Full-Stack ML Engineer</div></div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0"><div class="vs-pill" style="position:relative;transform:none">VS</div></div>
+    <div class="cmp-card" style="background:rgba(0,178,169,.06);border-color:rgba(0,178,169,.15);flex:1">
+      <div><div class="cmp-card-title">Data Engineering</div><div class="cmp-card-tagline">"Build the data infrastructure"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.12);color:rgba(0,200,190,.9);border:1px solid rgba(0,178,169,.2)">16 weeks · Remote</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Primary focus</div><div class="cmp-row-val">Building the pipelines, warehouses, and systems that make data available and reliable.</div></div>
+      <div><div class="cmp-row-label">Works with</div><div class="cmp-row-val">Raw data flows — collecting, cleaning, storing, and moving data at scale.</div></div>
+      <div><div class="cmp-row-label">Key tools</div><div class="cmp-row-val">Python, SQL, Airflow, Spark, Kafka, Docker, AWS, dbt, Terraform</div></div>
+      <div><div class="cmp-row-label">Analogy</div><div class="cmp-row-val">Builds the roads and fuel stations the car needs</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">Data Engineer · Cloud Data Engineer · Platform Engineer</div></div>
+    </div>
+  </div>
+  <div class="oneliner" style="margin-top:12px"><strong>One-liner for calls</strong>"AI Engineering extracts value from data using AI. Data Engineering makes data available in the first place. If they mention pipelines, Kafka, or warehouses — DE. If they mention models, predictions, or LLMs — AI Engineering."</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     31 — AI ENGINEERING vs AI & MLE
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:36px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Modular Track Confusion · Data &amp; AI</div>
+    <div class="compare-title">AI Engineering  ·  vs  ·  AI &amp; Machine Learning Engineering</div>
+    <div class="compare-subtitle">Same destination — different starting points. It's about what the candidate already knows.</div>
+  </div>
+  <div style="display:flex;gap:16px;flex:1">
+    <div class="cmp-card" style="background:rgba(0,178,169,.1);border-color:rgba(0,178,169,.3);flex:1">
+      <div><div class="cmp-card-title">AI Engineering</div><div class="cmp-card-tagline">"Build + run — the full 8 months"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.25);color:#00e8de;border:1px solid rgba(0,178,169,.35)">32 weeks — FLAGSHIP</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">What it covers</div><div class="cmp-row-val">Phase 1 (DS&AI: build models) + Phase 2 (AI&MLE: productionize them). Complete journey.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Beginners or career pivoters with <em>no existing data or ML foundation</em>.</div></div>
+      <div><div class="cmp-row-label">Pre-reqs</div><div class="cmp-row-val">Basic programming comfort — no DS or SWE background needed.</div></div>
+      <div><div class="cmp-row-label">Analogy</div><div class="cmp-row-val">Learning to cook AND run a restaurant kitchen — starting from scratch.</div></div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0"><div class="vs-pill" style="position:relative;transform:none">VS</div></div>
+    <div class="cmp-card" style="background:rgba(0,178,169,.06);border-color:rgba(0,178,169,.15);flex:1">
+      <div><div class="cmp-card-title">AI &amp; Machine Learning Engineering</div><div class="cmp-card-tagline">"Run it in production — 4 months"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.12);color:rgba(0,200,190,.9);border:1px solid rgba(0,178,169,.2)">16 weeks — Phase 2 only</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">What it covers</div><div class="cmp-row-val">Phase 2 only — MLOps, LLMOps, serving, monitoring, scaling. Skips Phase 1.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Candidates who <em>already have</em> a DS or SWE background and know how to build a model.</div></div>
+      <div><div class="cmp-row-label">Pre-reqs</div><div class="cmp-row-val">Solid Python + prior DS or software engineering experience.</div></div>
+      <div><div class="cmp-row-label">Analogy</div><div class="cmp-row-val">Already knows how to cook — learning to run the kitchen at scale.</div></div>
+    </div>
+  </div>
+  <div class="oneliner" style="margin-top:12px"><strong>One-liner for calls</strong>"AI Engineering is for candidates who need both phases. AI &amp; MLE is for candidates who already have Phase 1 skills. Ask: can they already build a working ML model? If yes — AI&amp;MLE. If no — AI Engineering."</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     32 — 3-WAY PM COMPARISON
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:28px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Most Common Confusion · Management Programs</div>
+    <div class="compare-title">AI Project Management  ·  IT Project Management  ·  Product Management with AI</div>
+    <div class="compare-subtitle">Three programs with "Management" in the name — very different roles and audiences.</div>
+  </div>
+  <table class="cmp-table" style="flex:1">
+    <thead>
+      <tr>
+        <th></th>
+        <th style="color:#00b2a9">AI Project Management<br><span style="font-size:10px;font-weight:400;opacity:.6">20 wks · Data track</span></th>
+        <th style="color:#e86525">IT Project Management with AI<br><span style="font-size:10px;font-weight:400;opacity:.6">16 wks · PM track</span></th>
+        <th style="color:#e86525">Product Management with AI<br><span style="font-size:10px;font-weight:400;opacity:.6">16 wks · PM track</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Goal</td>
+        <td>Deliver AI/data projects end-to-end — from planning to production</td>
+        <td>Coordinate and deliver IT projects using Agile frameworks</td>
+        <td>Define, build, and own AI product roadmaps</td>
+      </tr>
+      <tr>
+        <td>Technical depth</td>
+        <td>High — includes ML, Python, AWS Cloud, deep learning basics</td>
+        <td>Low — focused on process and coordination, not technical skills</td>
+        <td>Medium — data/AI fundamentals + product strategy</td>
+      </tr>
+      <tr>
+        <td>Who it's for</td>
+        <td>PMs or BAs who want to own AI project delivery</td>
+        <td>Career changers from ops, admin, consulting — entry into IT coordination</td>
+        <td>Existing PMs wanting AI/product skills, or DS who prefer people problems</td>
+      </tr>
+      <tr>
+        <td>Typical day</td>
+        <td>Manages timelines, data pipelines, stakeholders on an AI build</td>
+        <td>Runs sprint ceremonies, tracks scope and budget across IT teams</td>
+        <td>Defines roadmap, runs discovery, prioritizes backlog for an AI product</td>
+      </tr>
+      <tr>
+        <td>Job titles</td>
+        <td>AI Project Manager · Technical PM (Data)</td>
+        <td>IT Project Manager · Scrum Master · Project Coordinator</td>
+        <td>AI Product Manager · Data Product Manager</td>
+      </tr>
+      <tr>
+        <td>Pre-reqs</td>
+        <td>Tech curiosity required; PM background a plus</td>
+        <td>No tech background required — most accessible</td>
+        <td>PM OR data/AI experience required — one side needed</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="oneliner" style="margin-top:10px"><strong>One-liner for calls</strong>"IT PM coordinates projects. AI PM delivers AI projects with technical depth. Product Management owns what gets built and why. Ask: do they want to coordinate, to deliver, or to define the product?"</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     33 — DATM vs AI PROJECT MANAGEMENT
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:36px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Common Confusion · Product &amp; Project Management Track</div>
+    <div class="compare-title">Digital &amp; AI Transformation Management  ·  vs  ·  AI Project Management</div>
+    <div class="compare-subtitle">Both involve leading AI in organizations — but at completely different levels of scope and seniority.</div>
+  </div>
+  <div style="display:flex;gap:16px;flex:1">
+    <div class="cmp-card" style="background:rgba(232,101,37,.12);border-color:rgba(232,101,37,.35);flex:1">
+      <div><div class="cmp-card-title">Digital &amp; AI Transformation Management</div><div class="cmp-card-tagline">"Lead org-wide AI transformation"</div></div>
+      <span class="cmp-badge" style="background:rgba(232,101,37,.2);color:#f0874a;border:1px solid rgba(232,101,37,.35)">16 weeks · PM track · German</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Scope</div><div class="cmp-row-val"><strong style="color:#f0874a">Organizational</strong> — shapes the company's entire AI strategy and adoption roadmap.</div></div>
+      <div><div class="cmp-row-label">Technical depth</div><div class="cmp-row-val">Low to medium. Focus is on governance, strategy, and change management — not hands-on AI building.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Mid–senior leaders: directors, innovation managers, strategy leads. Typically 5+ years in business roles.</div></div>
+      <div><div class="cmp-row-label">Typical day</div><div class="cmp-row-val">Maps AI opportunities across the org, manages EU AI Act compliance, leads change management programs.</div></div>
+      <div><div class="cmp-row-label">Key topics</div><div class="cmp-row-val">AI governance · EU AI Act · change management · scaling AI across business units</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">AI Transformation Manager · Innovation Lead · Digital Strategy Director</div></div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0"><div class="vs-pill" style="position:relative;transform:none">VS</div></div>
+    <div class="cmp-card" style="background:rgba(0,178,169,.1);border-color:rgba(0,178,169,.3);flex:1">
+      <div><div class="cmp-card-title">AI Project Management</div><div class="cmp-card-tagline">"Deliver specific AI projects"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.2);color:#00b2a9;border:1px solid rgba(0,178,169,.3)">20 weeks · Data track · English</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Scope</div><div class="cmp-row-val"><strong style="color:#00b2a9">Project-level</strong> — plans, executes, and delivers specific AI or data projects end-to-end.</div></div>
+      <div><div class="cmp-row-label">Technical depth</div><div class="cmp-row-val">High. Includes ML basics, Python, AWS — enough to communicate with data teams and manage delivery risks.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">PMs, BAs, or ops professionals who want to manage and own the delivery of AI projects in the field.</div></div>
+      <div><div class="cmp-row-label">Typical day</div><div class="cmp-row-val">Manages project timelines, coordinates data engineers and scientists, handles delivery milestones and stakeholders.</div></div>
+      <div><div class="cmp-row-label">Key topics</div><div class="cmp-row-val">ML/DL basics · Python for AI · AWS cloud · project delivery frameworks · data governance</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">AI Project Manager · Technical PM (Data/AI) · AI Program Manager</div></div>
+    </div>
+  </div>
+  <div class="oneliner" style="margin-top:12px"><strong>One-liner for calls</strong>"DATM is for senior leaders shaping how their whole organization adopts AI. AI PM is for hands-on project managers delivering specific AI builds. Ask: are they steering the ship or building a specific product?"</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     COMPARE — AI DATA STRATEGY vs DATM
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:36px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Common Confusion · Data &amp; AI vs Product &amp; Project Management</div>
+    <div class="compare-title">AI Data Strategy &amp; A different audiences. One is practitioner-level, the other is strategic leadership.</div>
+  </div>
+  <div style="display:flex;gap:16px;flex:1">
+    <div class="cmp-card" style="background:rgba(0,178,169,.1);border-color:rgba(0,178,169,.3);flex:1">
+      <div><div class="cmp-card-title">AI Data Strategy &amp; Applied Automation</div><div class="cmp-card-tagline">"Build and run the org's AI data systems"</div></div>
+      <span class="cmp-badge" style="background:rgba(0,178,169,.2);color:#00b2a9;border:1px solid rgba(0,178,169,.3)">16 weeks · Data track · English</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Who</div><div class="cmp-row-val">Data practitioners: engineers, architects, senior analysts who want to add strategy layer.</div></div>
+      <div><div class="cmp-row-label">Focus</div><div class="cmp-row-val">Technical: cloud architecture, data pipelines, ML integration, applied automation with n8n and APIs.</div></div>
+      <div><div class="cmp-row-label">Output</div><div class="cmp-row-val">Designs and implements the data/AI infrastructure that powers an organisation's AI roadmap.</div></div>
+      <div><div class="cmp-row-label">Seniority</div><div class="cmp-row-val">IC → Senior IC / Tech Lead level. Stays close to the stack.</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">Data Strategy Lead · AI Architect · Senior Data Engineer</div></div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0"><div class="vs-pill" style="position:relative;transform:none">VS</div></div>
+    <div class="cmp-card" style="background:rgba(232,101,37,.12);border-color:rgba(232,101,37,.35);flex:1">
+      <div><div class="cmp-card-title">Digital &amp; AI Transformation Management</div><div class="cmp-card-tagline">"Lead the organization through AI change"</div></div>
+      <span class="cmp-badge" style="background:rgba(232,101,37,.2);color:#f0874a;border:1px solid rgba(232,101,37,.35)">16 weeks · PM track · German</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Who</div><div class="cmp-row-val">Senior business leaders: directors, innovation managers, strategy leads with 5+ years of experience.</div></div>
+      <div><div class="cmp-row-label">Focus</div><div class="cmp-row-val">Strategic: organizational change, stakeholder alignment, EU AI Act governance, executive communication.</div></div>
+      <div><div class="cmp-row-label">Output</div><div class="cmp-row-val">Shapes how the entire organisation adopts AI — sets policy, roadmap, and cultural change agenda.</div></div>
+      <div><div class="cmp-row-label">Seniority</div><div class="cmp-row-val">Mid–senior director level. Moves org strategy, not code.</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">AI Transformation Manager · Innovation Director · Digital Strategy Lead</div></div>
+    </div>
+  </div>
+  <div class="oneliner" style="margin-top:12px"><strong>One-liner for calls</strong>"AI Data Strategy is for technical builders who want to own the AI data architecture. DATM is for senior leaders driving org-wide AI adoption without touching the stack. Ask: do they want to build it or lead the change?"</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     39 — ADVANCED SD vs JAVA
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:36px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">Common Confusion · Software Development Track</div>
+    <div class="compare-title">Advanced Software Development with AI  ·  vs  ·  Java Development with AI</div>
+    <div class="compare-subtitle">Both are upskilling programs for developers — but different tech stacks and audiences.</div>
+  </div>
+  <div style="display:flex;gap:16px;flex:1">
+    <div class="cmp-card" style="background:rgba(26,188,156,.1);border-color:rgba(26,188,156,.3);flex:1">
+      <div><div class="cmp-card-title">Advanced Software Development with AI</div><div class="cmp-card-tagline">"Modern full-stack engineering with AI integration"</div></div>
+      <span class="cmp-badge" style="background:rgba(26,188,156,.2);color:#1abc9c;border:1px solid rgba(26,188,156,.3)">16 weeks · Web track · English</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Focus</div><div class="cmp-row-val">Architecture, backend, cloud, DevOps — moving beyond front-end/back-end split into modern engineering roles.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Junior developers (1-3 years) who want to level up technically and move into architecture or senior roles.</div></div>
+      <div><div class="cmp-row-label">Stack</div><div class="cmp-row-val">Python/TypeScript, Docker, AWS/cloud, CI/CD, system design + AI integration patterns</div></div>
+      <div><div class="cmp-row-label">Market fit</div><div class="cmp-row-val">International/startup-friendly. English-taught, cloud-native focus.</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">Senior Developer · Software Architect · Backend/Cloud Engineer</div></div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0"><div class="vs-pill" style="position:relative;transform:none">VS</div></div>
+    <div class="cmp-card" style="background:rgba(26,188,156,.06);border-color:rgba(26,188,156,.15);flex:1">
+      <div><div class="cmp-card-title">Java Development with AI</div><div class="cmp-card-tagline">"Enterprise backend development — German market"</div></div>
+      <span class="cmp-badge" style="background:rgba(26,188,156,.12);color:rgba(26,200,170,.9);border:1px solid rgba(26,188,156,.2)">16 weeks · Web track · German</span>
+      <div class="cmp-divider"></div>
+      <div><div class="cmp-row-label">Focus</div><div class="cmp-row-val">Enterprise Java ecosystem: Spring Boot, microservices, APIs — the backbone of German enterprise IT.</div></div>
+      <div><div class="cmp-row-label">Who it's for</div><div class="cmp-row-val">Career switchers or junior developers targeting stable enterprise roles in German companies.</div></div>
+      <div><div class="cmp-row-label">Stack</div><div class="cmp-row-val">Java, Spring Boot, SQL, REST APIs, Docker, Maven — classic enterprise backend</div></div>
+      <div><div class="cmp-row-label">Market fit</div><div class="cmp-row-val">Stable, consistent demand in German corporate market. German-taught, enterprise-aligned.</div></div>
+      <div><div class="cmp-row-label">Job titles</div><div class="cmp-row-val">Java Developer · Backend Engineer · Enterprise Software Developer</div></div>
+    </div>
+  </div>
+  <div class="oneliner" style="margin-top:12px"><strong>One-liner for calls</strong>"Advanced SD is for developers who want to work across the modern stack in international or startup environments. Java is for those targeting stable enterprise backend roles in Germany. Ask: startup-agile or enterprise-stable?"</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     40 — NEW PROGRAMS 3-WAY COMPARISON
+══════════════════════════════════════════ -->
+<div class="slide slide-compare cat-compare" style="padding-bottom:28px">
+  <div class="compare-header">
+    <div class="compare-eyebrow">New Programs 2026 · Side-by-Side</div>
+    <div class="compare-title">AI Expert  ·  AI Governance &amp; Transformation  ·  AI Strategy for Business &amp; AI Regulation</div>
+    <div class="compare-subtitle">Three new programs — same AI context, very different audiences and entry points.</div>
+  </div>
+  <table class="cmp-table" style="flex:1">
+    <thead>
+      <tr>
+        <th></th>
+        <th style="color:#00b2a9">AI Expert<br><span style="font-size:10px;font-weight:400;opacity:.6">6 wks · Data track · German</span></th>
+        <th style="color:#e86525">AI Governance &amp; Transformation<br><span style="font-size:10px;font-weight:400;opacity:.6">6 wks · PM track · German · Phase 1</span></th>
+        <th style="color:#e86525">AI Strategy for Business &amp; AI Regulation<br><span style="font-size:10px;font-weight:400;opacity:.6">8 wks · PM track · German · Phase 2</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Goal</td>
+        <td>Apply AI tools &amp; automation in your current role</td>
+        <td>Govern AI adoption and lead organizational change</td>
+        <td>Define AI strategy and defend it at board level</td>
+      </tr>
+      <tr>
+        <td>Technical depth</td>
+        <td>Practical — hands-on with n8n, SQL, Power BI, Prompt Engineering</td>
+        <td>Low — governance frameworks, EU AI Act, change management</td>
+        <td>Very low — financial modelling, ROI, board communication</td>
+      </tr>
+      <tr>
+        <td>Who it's for</td>
+        <td>Domain experts, process managers, team leads — role upgrade, not career switch</td>
+        <td>Middle managers, compliance officers, digital directors driving AI adoption</td>
+        <td>Senior directors, C-suite candidates, CFOs &amp; innovation leads shaping company AI strategy</td>
+      </tr>
+      <tr>
+        <td>Seniority</td>
+        <td>Mid-level professionals (any function)</td>
+        <td>Mid–senior managers (3–8 years experience)</td>
+        <td>Senior leadership (8+ years, board-level exposure)</td>
+      </tr>
+      <tr>
+        <td>Pre-reqs</td>
+        <td>No tech degree required</td>
+        <td>Management experience; ideally complements or precedes Phase 2</td>
+        <td>Senior business experience; Phase 1 (AI Governance) recommended</td>
+      </tr>
+      <tr>
+        <td>Job titles</td>
+        <td>AI Transformation Specialist · Process Manager · Automation Consultant</td>
+        <td>AI Transformation Manager · Change Manager · AI Governance Lead</td>
+        <td>AI Strategy Director · Chief AI Officer · Transformation Management Lead</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="oneliner" style="margin-top:10px"><strong>One-liner for calls</strong>"AI Expert = practitioner who uses AI in their job. AI Governance = manager who rolls out AI across a team or department. AI Strategy = executive who owns the company's AI agenda. Ask: do they do, manage, or decide?"</div>
+</div>
+
+</div><!-- /.deck -->
+
+<nav class="nav">
+  <button id="prev" onclick="go(-1)">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <span id="counter">1 / 40</span>
+  <button id="next" onclick="go(1)">&#8594;</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  const catColors = {
+    data:    '#00b2a9',
+    web:     '#1abc9c',
+    pm:      '#e86525',
+    cyber:   '#5b5ef4',
+    ux:      '#9b59b6',
+    mkt:     '#e74c3c',
+    compare: '#ffc83d'
+  };
+
+  const dotCats = [
+    'data','data',                                                                       // 1-2  title, overview
+    'data','data','data','data','data','data','data','data','data','data','data',         // 3-13 Data section + 9 progs + map
+    'web','web','web','web','web',                                                        // 14-18 Web section + 4 progs
+    'pm','pm','pm','pm','pm','pm',                                                        // 19-24 PM section + 5 progs
+    'cyber','cyber','cyber',                                                              // 25-27 Cyber section + 2 progs
+    'ux','ux',                                                                            // 28-29 UX section + 1 prog
+    'mkt','mkt',                                                                          // 30-31 Mkt section + 1 prog
+    'compare','compare','compare','compare','compare','compare','compare','compare','compare'  // 32-40 Compare section + 8 slides
+  ];
+
+  const dotsEl = document.getElementById('dots');
+  const dotEls = [];
+  dotCats.forEach((cat, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot cat-' + cat;
+    d.title = 'Slide ' + (i + 1);
+    d.onclick = () => show(i);
+    dotsEl.appendChild(d);
+    dotEls.push(d);
+  });
+
+  function show(n) {
+    slides[cur].classList.remove('active');
+    dotEls[cur].classList.remove('active');
+    cur = (n + total) % total;
+    slides[cur].classList.add('active');
+    dotEls[cur].classList.add('active');
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === total - 1;
+    // Tint nav accent to current category
+    const cat = dotCats[cur] || 'data';
+    document.querySelector('.nav').style.borderColor = catColors[cat] + '44';
+  }
+
+  function go(dir) { show(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+  });
+
+  show(0);
+</script>
+</body>
+</html>
