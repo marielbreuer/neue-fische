@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#0d1117;color:#e8eaf0;padding:20px;min-height:100vh}
+h1{font-size:18px;font-weight:800;color:#fff;margin-bottom:4px}
+.sub{font-size:12px;color:#8b92a8;margin-bottom:20px}
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin:16px 0 8px}
+.module-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.mod{padding:7px 12px;border-radius:8px;font-size:11px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s;user-select:none;position:relative}
+.mod:hover{transform:translateY(-1px);filter:brightness(1.15)}
+.mod.lit{transform:translateY(-2px);filter:brightness(1.3);box-shadow:0 0 0 2px #fff4}
+.mod.dim{opacity:.2}
+.mod .badge{position:absolute;top:-5px;right:-5px;font-size:8px;padding:1px 5px;border-radius:8px;background:#fff;color:#000;font-weight:800}
+.mod.is-new{outline:2px solid #ffd06088;outline-offset:2px}
+.new-tag{font-size:8px;background:#ffd060;color:#000;padding:1px 5px;border-radius:6px;font-weight:800;margin-left:5px;vertical-align:middle}
+
+.dom-data{background:rgba(0,178,169,.15);border-color:rgba(0,178,169,.5);color:#00d4ca}
+.dom-web{background:rgba(26,188,156,.15);border-color:rgba(26,188,156,.5);color:#1ecc9a}
+.dom-mgmt{background:rgba(232,101,37,.15);border-color:rgba(232,101,37,.5);color:#f09060}
+.dom-cross{background:rgba(180,140,255,.15);border-color:rgba(180,140,255,.5);color:#c8aaff}
+.dom-spec{background:rgba(100,160,240,.15);border-color:rgba(100,160,240,.5);color:#80b8ff}
+.dom-agent{background:rgba(255,180,60,.15);border-color:rgba(255,180,60,.6);color:#ffc840}
+
+.paths-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.path-card{border-radius:10px;padding:10px 14px;border:1.5px solid;cursor:pointer;transition:all .15s;min-width:150px;flex:1}
+.path-card:hover{transform:translateY(-2px)}
+.path-card.selected{outline:2px solid #fff8;outline-offset:2px}
+.path-name{font-size:12px;font-weight:700;margin-bottom:4px}
+.path-dur{font-size:10px;opacity:.6;margin-bottom:6px}
+.path-mods{display:flex;flex-wrap:wrap;gap:3px}
+.path-mod-chip{font-size:9px;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.track-row{margin-bottom:8px}
+.track-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;opacity:.5}
+.info-bar{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 16px;margin-top:16px;font-size:12px;line-height:1.7;color:#b0b8d8;min-height:56px}
+.info-bar strong{color:#fff}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:10px;color:#666}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+.reset{font-size:10px;color:#555;background:none;border:none;cursor:pointer;text-decoration:underline;margin-left:auto}
+.reset:hover{color:#999}
+.flex-between{display:flex;align-items:center}
+</style>
+</head>
+<body>
+<h1>Modular Curriculum Model — neue fische 2026</h1>
+<p class="sub">Every program built from 6-week blocks. Combine blocks to earn career certifications. Click a module or career to explore. <span style="color:#ffc840;font-weight:600">★ NEW</span> = in development.</p>
+
+<div id="module-area"></div>
+
+<div style="margin-top:20px" class="flex-between">
+  <div style="font-size:13px;font-weight:700;color:#fff">Career Certifications</div>
+  <button class="reset" onclick="clearSelection()">↺ clear</button>
+</div>
+<div style="font-size:10px;color:#666;margin-bottom:10px">Click a card to highlight its required modules</div>
+<div id="paths-area"></div>
+
+<div class="info-bar" id="info-bar">← Select a career certification or click a module block to explore.</div>
+
+<div class="legend">
+  <span><span class="legend-dot" style="background:#00d4ca"></span>Data & AI</span>
+  <span><span class="legend-dot" style="background:#ffc840"></span>Agentic / Advanced AI</span>
+  <span><span class="legend-dot" style="background:#1ecc9a"></span>Web & Software</span>
+  <span><span class="legend-dot" style="background:#f09060"></span>Management</span>
+  <span><span class="legend-dot" style="background:#c8aaff"></span>Cross-cutting</span>
+  <span><span class="legend-dot" style="background:#80b8ff"></span>Specialist</span>
+</div>
+
+<script>
+const MODULES = [
+  {id:'py',    label:'Python & Data Fundamentals',  dom:'data',  weeks:6, isNew:false, desc:'Core Python, Pandas, SQL, statistics — the entry layer for all data and AI programs.'},
+  {id:'da',    label:'Data Analytics & Viz',         dom:'data',  weeks:6, isNew:false, desc:'BI tools, dashboards, data storytelling, Tableau, SQL deep-dive.'},
+  {id:'ml',    label:'Machine Learning Foundations', dom:'data',  weeks:6, isNew:false, desc:'scikit-learn, model building, evaluation, feature engineering.'},
+  {id:'mlp',   label:'ML Engineering & Production',  dom:'data',  weeks:6, isNew:false, desc:'MLOps, Docker, model serving, monitoring, LLMOps — getting models into production.'},
+  {id:'de',    label:'Data Engineering & Pipelines', dom:'data',  weeks:6, isNew:false, desc:'Airflow, dbt, Kafka, data warehouses — the infrastructure that makes data available.'},
+  {id:'cl',    label:'Cloud & Infrastructure',       dom:'data',  weeks:6, isNew:false, desc:'AWS, Docker, CI/CD, cloud architecture — shared by data and web tracks.'},
+  // Agentic layer — new
+  {id:'ag',    label:'Agentic Coding',               dom:'agent', weeks:6, isNew:true,  desc:'Agent orchestration with LLMs: tool use, memory, multi-agent pipelines, MCP protocol. Engineering-grade — NOT prompt-to-code. Prereq: ML or dev background.'},
+  {id:'aim_m', label:'AI Modeling',                  dom:'agent', weeks:6, isNew:false, desc:'Build, fine-tune, and evaluate AI/ML models. High entry bar — requires existing logic/dev experience. German-taught.'},
+  // Web & Software
+  {id:'wb',    label:'Web Fundamentals',             dom:'web',   weeks:6, isNew:false, desc:'HTML, CSS, JavaScript, Git, React basics — entry point to all web programs.'},
+  {id:'fs',    label:'Full Stack Development',       dom:'web',   weeks:6, isNew:false, desc:'React, Node, APIs, relational databases, deployment.'},
+  {id:'jv',    label:'Java Enterprise',              dom:'web',   weeks:6, isNew:false, desc:'Spring Boot, microservices, REST APIs — the stable German enterprise stack.'},
+  // Management
+  {id:'pm',    label:'Product Management',           dom:'mgmt',  weeks:6, isNew:false, desc:'Agile, Scrum, roadmapping, user research, product strategy, data literacy.'},
+  {id:'pj',    label:'Project Management',           dom:'mgmt',  weeks:6, isNew:false, desc:'Project delivery, Scrum Master, stakeholder management, waterfall vs agile.'},
+  {id:'gov',   label:'AI Governance & Compliance',   dom:'mgmt',  weeks:6, isNew:false, desc:'EU AI Act, ISO 42001, risk frameworks, ADKAR/Kotter change management.'},
+  {id:'str',   label:'AI Strategy & Regulation',     dom:'mgmt',  weeks:8, isNew:false, desc:'NPV/IRR ROI modelling, board communication, EU AI Act + GDPR, C-suite strategy.'},
+  // Cross-cutting
+  {id:'ait',   label:'AI Tools & Automation',        dom:'cross', weeks:6, isNew:false, desc:'n8n, Prompt Engineering, Copilot, Power BI, SQL basics, EU AI Act Art. 4 literacy.'},
+  // Specialist
+  {id:'cy',    label:'Cyber Security',               dom:'spec',  weeks:6, isNew:false, desc:'Ethical hacking, cloud security, pen testing, certifications.'},
+  {id:'ux',    label:'UX/UI Design',                 dom:'spec',  weeks:6, isNew:false, desc:'Figma, user research, prototyping, digital product design.'},
+  {id:'mk',    label:'AI Marketing',                 dom:'spec',  weeks:6, isNew:false, desc:'AI-driven campaigns, data-backed marketing, growth automation.'},
+];
+
+const CAREERS = [
+  // Data & AI
+  {id:'analyst',    name:'Data Analyst',              mods:['py','da'],                    track:'data',  lang:'EN'},
+  {id:'dscience',   name:'Data Scientist',             mods:['py','da','ml'],               track:'data',  lang:'EN'},
+  {id:'dengineer',  name:'Data Engineer',              mods:['py','de','cl'],               track:'data',  lang:'EN'},
+  {id:'mlengineer', name:'ML / AI Engineer',           mods:['py','ml','mlp','cl'],         track:'data',  lang:'EN'},
+  {id:'aiengineer', name:'AI Engineer (Flagship)',     mods:['py','da','ml','mlp','de','cl'],track:'data', lang:'EN'},
+  // Agentic / Advanced AI
+  {id:'agcoder',    name:'Agentic AI Developer ★',    mods:['ml','mlp','ag'],              track:'agent', lang:'EN', isNew:true},
+  {id:'aimoder',    name:'AI Modeling Specialist',     mods:['aim_m'],                      track:'agent', lang:'DE'},
+  {id:'agfull',     name:'AI Engineer + Agents ★',    mods:['py','ml','mlp','cl','ag'],    track:'agent', lang:'EN', isNew:true},
+  // Practitioner (non-tech)
+  {id:'aiexpert',   name:'AI Expert (Practitioner)',   mods:['ait'],                        track:'cross', lang:'DE'},
+  {id:'aipm',       name:'AI Project Manager',         mods:['pj','py','ml'],               track:'mgmt',  lang:'EN'},
+  // Web & Software
+  {id:'webdev',     name:'Junior Web Developer',       mods:['wb','fs'],                    track:'web',   lang:'DE'},
+  {id:'asd',        name:'Advanced Software Dev',      mods:['wb','fs','cl'],               track:'web',   lang:'DE'},
+  {id:'fullstack',  name:'Full Stack Developer',       mods:['wb','fs','cl','de'],          track:'web',   lang:'DE'},
+  {id:'java',       name:'Java Developer',             mods:['wb','jv'],                    track:'web',   lang:'DE'},
+  // Management
+  {id:'pm_cert',    name:'Product Manager',            mods:['pm'],                         track:'mgmt',  lang:'EN'},
+  {id:'itpm',       name:'IT Project Manager',         mods:['pj'],                         track:'mgmt',  lang:'EN'},
+  {id:'datm',       name:'Transformation Manager',     mods:['ait','gov'],                  track:'mgmt',  lang:'DE'},
+  {id:'aimanager',  name:'AI Governance & Strategy',   mods:['gov','str'],                  track:'mgmt',  lang:'DE'},
+  {id:'caio',       name:'Chief AI Officer',           mods:['ait','gov','str','pm'],       track:'mgmt',  lang:'DE'},
+  // Specialist
+  {id:'cyber',      name:'Cyber Security Specialist',  mods:['cl','cy'],                    track:'spec',  lang:'EN'},
+  {id:'aws',        name:'Cloud / AWS Architect',      mods:['cl'],                         track:'spec',  lang:'EN'},
+  {id:'uxdesign',   name:'UX/UI Designer',             mods:['ux'],                         track:'spec',  lang:'EN'},
+  {id:'aimarketer', name:'AI Marketer',                mods:['mk','ait'],                   track:'mkt',   lang:'EN'},
+];
+
+const TC = {
+  data: {bg:'rgba(0,178,169,.18)',  b:'rgba(0,178,169,.5)',  c:'#00d4ca'},
+  agent:{bg:'rgba(255,180,60,.18)', b:'rgba(255,180,60,.6)', c:'#ffc840'},
+  web:  {bg:'rgba(26,188,156,.18)', b:'rgba(26,188,156,.5)', c:'#1ecc9a'},
+  mgmt: {bg:'rgba(232,101,37,.18)', b:'rgba(232,101,37,.5)', c:'#f09060'},
+  cross:{bg:'rgba(180,140,255,.18)',b:'rgba(180,140,255,.5)',c:'#c8aaff'},
+  spec: {bg:'rgba(100,160,240,.18)',b:'rgba(100,160,240,.5)',c:'#80b8ff'},
+  mkt:  {bg:'rgba(240,150,60,.18)', b:'rgba(240,150,60,.5)', c:'#f4a460'},
+};
+
+const modUseCount = {};
+MODULES.forEach(m => modUseCount[m.id] = 0);
+CAREERS.forEach(c => c.mods.forEach(m => { modUseCount[m] = (modUseCount[m]||0) + 1; }));
+
+let selectedCareer = null;
+const modEls = {};
+
+function renderModules() {
+  const area = document.getElementById('module-area');
+  const groups = [
+    {label:'Data & AI', doms:['data']},
+    {label:'Agentic & Advanced AI  ← the missing piece', doms:['agent']},
+    {label:'Web & Software', doms:['web']},
+    {label:'Management', doms:['mgmt']},
+    {label:'Cross-cutting & Specialist', doms:['cross','spec','mkt']},
+  ];
+  groups.forEach(g => {
+    const mods = MODULES.filter(m => g.doms.includes(m.dom));
+    const div = document.createElement('div');
+    div.className = 'track-row';
+    const labelHtml = g.label.includes('missing') 
+      ? `<span style="color:#ffc840">${g.label}</span>` 
+      : g.label;
+    div.innerHTML = `<div class="track-head">${labelHtml}</div><div class="module-grid"></div>`;
+    area.appendChild(div);
+    const grid = div.querySelector('.module-grid');
+    mods.forEach(m => {
+      const el = document.createElement('div');
+      el.className = `mod dom-${m.dom}${m.isNew?' is-new':''}`;
+      const shared = modUseCount[m.id] >= 3;
+      el.innerHTML = `${m.label}${m.isNew?'<span class="new-tag">NEW</span>':''}<span style="font-size:9px;opacity:.5;font-weight:400"> · ${m.weeks}w</span>${shared?'<span class="badge">★</span>':''}`;
+      el.title = m.desc;
+      el.id = 'mod-' + m.id;
+      el.onclick = () => highlightByModule(m.id);
+      grid.appendChild(el);
+      modEls[m.id] = el;
+    });
+  });
+}
+
+function renderCareers() {
+  const area = document.getElementById('paths-area');
+  const tracks = [
+    {label:'Data & AI',                ids:['analyst','dscience','dengineer','mlengineer','aiengineer']},
+    {label:'Agentic & Advanced AI ★',  ids:['agcoder','aimoder','agfull']},
+    {label:'AI Practitioner',          ids:['aiexpert','aipm']},
+    {label:'Web & Software',           ids:['webdev','asd','fullstack','java']},
+    {label:'Management',               ids:['pm_cert','itpm','datm','aimanager','caio']},
+    {label:'Specialist & Marketing',   ids:['cyber','aws','uxdesign','aimarketer']},
+  ];
+  tracks.forEach(t => {
+    const row = document.createElement('div');
+    row.style.marginBottom = '14px';
+    const isAgent = t.label.includes('★');
+    row.innerHTML = `<div class="track-head" style="${isAgent?'color:#ffc840;opacity:1':''}">${t.label}</div>`;
+    const flex = document.createElement('div');
+    flex.style.cssText = 'display:flex;flex-wrap:wrap;gap:7px';
+    t.ids.forEach(cid => {
+      const c = CAREERS.find(x => x.id === cid);
+      if(!c) return;
+      const tc = TC[c.track] || TC.data;
+      const totalWeeks = c.mods.reduce((s,mid) => s + (MODULES.find(m=>m.id===mid)?.weeks||6), 0);
+      const el = document.createElement('div');
+      el.className = 'path-card';
+      el.style.cssText = `background:${tc.bg};border-color:${tc.b}`;
+      if(c.isNew) el.style.outline = '1.5px solid rgba(255,208,60,.4)';
+      el.innerHTML = `<div class="path-name" style="color:${tc.c}">${c.name}</div>
+        <div class="path-dur">${totalWeeks} weeks · ${c.lang}</div>
+        <div class="path-mods">${c.mods.map(mid=>`<span class="path-mod-chip">${MODULES.find(m=>m.id===mid)?.label||mid}</span>`).join('')}</div>`;
+      el.onclick = () => selectCareer(c);
+      el.id = 'career-' + c.id;
+      flex.appendChild(el);
+    });
+    row.appendChild(flex);
+    area.appendChild(row);
+  });
+}
+
+function selectCareer(c) {
+  if(selectedCareer?.id === c.id) { clearSelection(); return; }
+  selectedCareer = c;
+  Object.values(modEls).forEach(el => { el.classList.remove('lit','dim'); el.classList.add('dim'); });
+  c.mods.forEach(mid => { if(modEls[mid]) { modEls[mid].classList.remove('dim'); modEls[mid].classList.add('lit'); } });
+  document.querySelectorAll('.path-card').forEach(el => el.classList.remove('selected'));
+  document.getElementById('career-'+c.id)?.classList.add('selected');
+  const totalWeeks = c.mods.reduce((s,mid) => s + (MODULES.find(m=>m.id===mid)?.weeks||6), 0);
+  const mods = c.mods.map(mid => MODULES.find(m=>m.id===mid)?.label).join(' → ');
+  const tc = TC[c.track] || TC.data;
+  document.getElementById('info-bar').innerHTML = `<strong style="color:${tc.c}">${c.name}</strong> · ${totalWeeks} weeks total · ${c.lang}${c.isNew?' · <span style="color:#ffc840">⚠ In development</span>':''}<br><span style="font-size:10px;opacity:.7">${mods}</span>`;
+}
+
+function highlightByModule(mid) {
+  clearSelection();
+  Object.values(modEls).forEach(el => { el.classList.remove('lit','dim'); el.classList.add('dim'); });
+  if(modEls[mid]) { modEls[mid].classList.remove('dim'); modEls[mid].classList.add('lit'); }
+  const users = CAREERS.filter(c => c.mods.includes(mid));
+  document.querySelectorAll('.path-card').forEach(el => el.style.opacity = '0.25');
+  users.forEach(c => { const el = document.getElementById('career-'+c.id); if(el) el.style.opacity='1'; });
+  const mod = MODULES.find(m=>m.id===mid);
+  document.getElementById('info-bar').innerHTML = `<strong>${mod.label}</strong> · ${mod.weeks} weeks${mod.isNew?' · <span style="color:#ffc840">⚠ In development</span>':''}<br><span style="font-size:10px;opacity:.7">${mod.desc}<br>Used in: ${users.map(c=>c.name).join(' · ')}</span>`;
+}
+
+function clearSelection() {
+  selectedCareer = null;
+  Object.values(modEls).forEach(el => { el.classList.remove('lit','dim'); });
+  document.querySelectorAll('.path-card').forEach(el => { el.classList.remove('selected'); el.style.opacity=''; });
+  document.getElementById('info-bar').innerHTML = '← Select a career certification or click a module block to explore.';
+}
+
+renderModules();
+renderCareers();
+</script>
+</body>
+</html>
