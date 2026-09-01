@@ -6,7 +6,7 @@ Internal resources for the Product and Admissions teams. Live on GitHub Pages â€
 
 ## [Program Portfolio Deck](https://marielbreuer.github.io/neue-fische/Program_Portfolio_Overview_01Sep2026.html)
 
-A slide deck covering all 22 programs across Data & AI, Web & Software Development, Product & Project Management, Cyber & Cloud, UX/UI, and Marketing. Each slide includes target personas, tech stack, job outcomes, and admissions talking points. The final section compares frequently confused program pairs side by side.
+A slide deck covering all 25 programs across Data & AI, Web & Software Development, Product & Project Management, Cyber & Cloud, UX/UI, and Marketing. Each slide includes target personas, tech stack, job outcomes, and admissions talking points. The final section compares frequently confused program pairs side by side.
 
 Use for: team onboarding, internal alignment meetings, marketing briefings.
 
