@@ -22,4 +22,4 @@ Use for: intake calls, lead qualification, team training on program differences.
 
 ---
 
-*Last updated: June 2026 · Maintained by Mariel Breuer, Product Team*
+*Last updated: September 2026 · Maintained by Mariel Breuer, Product Team*
